@@ -1,0 +1,2518 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HARROW - Realisasi ROW</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+    /* ============================================================
+       1. CSS VARIABLES & RESET
+    ============================================================ */
+    :root {
+      --primary: #1a78c2;
+      --primary-dark: #0f5a9e;
+      --primary-darker: #0d3b6e;
+      --primary-light: #dbeafe;
+      --primary-xlight: #f0f7ff;
+      --sidebar-bg: #0d3b6e;
+      --sidebar-border: rgba(255,255,255,0.07);
+      --sidebar-hover: rgba(255,255,255,0.08);
+      --sidebar-active: #1a78c2;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --gray: #64748b;
+      --gray-light: #f1f5f9;
+      --bg: #f0f5fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.09);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.14);
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-lg: 16px;
+      --r-xl: 20px;
+      --sidebar-w: 255px;
+      --topbar-h: 62px;
+      --font: 'Poppins', sans-serif;
+      --transition: 0.22s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font); }
+    input, textarea, select { font-family: var(--font); }
+    .hidden { display: none !important; }
+    img { max-width: 100%; }
+
+    /* ============================================================
+       2. LOGIN PAGE
+    ============================================================ */
+    #app-login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #0d3b6e 0%, #1a78c2 60%, #0d9488 100%);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    #app-login::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 75%, rgba(13,148,136,0.15) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .login-bg-circles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .login-bg-circles span {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .login-bg-circles span:nth-child(1) { width: 300px; height: 300px; top: -80px; right: -80px; }
+    .login-bg-circles span:nth-child(2) { width: 180px; height: 180px; bottom: 60px; left: -60px; }
+    .login-bg-circles span:nth-child(3) { width: 120px; height: 120px; bottom: 200px; right: 100px; background: rgba(13,148,136,0.1); }
+
+    .login-card {
+      background: var(--card);
+      border-radius: var(--r-xl);
+      padding: 44px 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 1;
+      animation: loginSlideIn 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+    }
+    @keyframes loginSlideIn {
+      from { opacity: 0; transform: translateY(36px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .login-logo-icon {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-logo h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--primary-darker);
+      letter-spacing: 3px;
+      line-height: 1;
+    }
+    .login-logo p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    .login-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 24px;
+    }
+    .login-form-group { margin-bottom: 18px; }
+    .login-label {
+      display: block;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .login-input-wrap { position: relative; }
+    .login-input-wrap i.prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+      font-size: 0.88rem;
+      pointer-events: none;
+    }
+    .login-input-wrap input {
+      width: 100%;
+      padding: 13px 42px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      font-size: 0.92rem;
+      outline: none;
+      transition: all var(--transition);
+      background: #f8faff;
+      color: var(--text);
+    }
+    .login-input-wrap input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(26,120,194,0.1);
+    }
+    .login-input-wrap .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      padding: 4px 6px;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border: none;
+      border-radius: var(--r-md);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 6px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(26,120,194,0.4);
+      letter-spacing: 0.5px;
+    }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,120,194,0.5); }
+    .login-btn:active { transform: translateY(0); }
+    .login-btn:disabled { background: var(--border); box-shadow: none; transform: none; color: var(--text-muted); cursor: not-allowed; }
+    .login-error {
+      background: var(--danger-light);
+      border: 1px solid #fca5a5;
+      border-radius: var(--r-sm);
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--danger);
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .login-error.show { display: flex; }
+    .login-version { text-align: center; margin-top: 20px; font-size: 0.72rem; color: var(--text-light); }
+    .spinner-sm {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       3. APP LAYOUT
+    ============================================================ */
+    #app-main { display: flex; min-height: 100vh; }
+
+    /* ============================================================
+       4. SIDEBAR
+    ============================================================ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 110;
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon-wrap {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #1a78c2, #0d9488);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-brand .brand-text h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .sidebar-brand .brand-text p {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .sidebar-user-box {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .user-avatar {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--teal));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .role-badge {
+      display: inline-block;
+      font-size: 0.63rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .role-badge.Admin { background: rgba(220,38,38,0.2); color: #fca5a5; }
+    .role-badge.Staff { background: rgba(22,163,74,0.2); color: #86efac; }
+    .role-badge.Petugas { background: rgba(217,119,6,0.2); color: #fde68a; }
+    .sidebar-nav { flex: 1; padding: 10px 10px; overflow-y: auto; }
+    .nav-section-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 14px 10px 5px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: var(--r-sm);
+      color: rgba(255,255,255,0.6);
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: all var(--transition);
+      cursor: pointer;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item i { width: 17px; text-align: center; font-size: 0.92rem; }
+    .nav-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,0.9); }
+    .nav-item.active {
+      background: var(--sidebar-active);
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(26,120,194,0.45);
+    }
+    .sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r-sm);
+      color: rgba(255,255,255,0.55);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      width: 100%;
+      transition: all var(--transition);
+    }
+    .logout-btn:hover { background: rgba(220,38,38,0.18); color: #fca5a5; border-color: rgba(220,38,38,0.25); }
+    .logout-btn i { width: 17px; text-align: center; }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 109;
+      transition: opacity var(--transition);
+    }
+
+    /* ============================================================
+       5. MAIN CONTENT
+    ============================================================ */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ============================================================
+       6. TOP BAR
+    ============================================================ */
+    .topbar {
+      height: var(--topbar-h);
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      box-shadow: var(--shadow-sm);
+    }
+    .topbar-hamburger {
+      display: none;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text-muted);
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .topbar-hamburger:hover { border-color: var(--primary); color: var(--primary); }
+    .topbar-title {
+      flex: 1;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .topbar-title span { color: var(--primary); }
+    .topbar-user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gray-light);
+      padding: 5px 12px 5px 5px;
+      border-radius: 50px;
+    }
+    .topbar-avatar {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--teal));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .topbar-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+
+    /* ============================================================
+       7. PAGE CONTENT BASE
+    ============================================================ */
+    .page-content {
+      flex: 1;
+      padding: 24px;
+    }
+    .page-header { margin-bottom: 20px; }
+    .page-header h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .page-header h2 i { color: var(--primary); font-size: 1.1rem; }
+    .page-header p { font-size: 0.82rem; color: var(--text-muted); margin-top: 3px; padding-left: 28px; }
+
+    /* ============================================================
+       8. DASHBOARD - KPI CARDS
+    ============================================================ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border-radius: var(--r-lg);
+      padding: 18px 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all var(--transition);
+      cursor: default;
+    }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--r-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .kpi-icon.blue   { background: var(--primary-light); color: var(--primary); }
+    .kpi-icon.green  { background: var(--success-light); color: var(--success); }
+    .kpi-icon.red    { background: var(--danger-light);  color: var(--danger);  }
+    .kpi-icon.orange { background: var(--warning-light); color: var(--warning); }
+    .kpi-icon.teal   { background: var(--teal-light);    color: var(--teal);    }
+    .kpi-body { flex: 1; min-width: 0; }
+    .kpi-num  { font-size: 1.65rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .kpi-lbl  { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+    /* ============================================================
+       9. CARD COMPONENT
+    ============================================================ */
+    .card {
+      background: var(--card);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .card-head {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to right, #f8faff, #fff);
+    }
+    .card-head h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-head h3 i { color: var(--primary); }
+    .card-body { padding: 18px 20px; }
+
+    /* ============================================================
+       10. FORM STYLES
+    ============================================================ */
+    .form-section-card {
+      background: var(--card);
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .form-section-head {
+      padding: 12px 18px;
+      background: linear-gradient(135deg, var(--primary-darker), var(--primary));
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #fff;
+    }
+    .form-section-head i { font-size: 0.92rem; opacity: 0.9; }
+    .form-section-head h3 { font-size: 0.84rem; font-weight: 600; }
+    .form-section-body { padding: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-label .req { color: var(--danger); }
+    .input-wrap { position: relative; }
+    .input-wrap .inp-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+    .input-wrap .inp-icon.top-align { top: 13px; transform: none; }
+    .form-control {
+      width: 100%;
+      padding: 11px 11px 11px 35px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 0.87rem;
+      outline: none;
+      transition: all var(--transition);
+      background: #fafcff;
+      color: var(--text);
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(26,120,194,0.11);
+    }
+    textarea.form-control {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.65;
+    }
+    .form-control.no-icon { padding-left: 11px; }
+    select.form-control { padding-right: 30px; }
+    .vol-display {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--r-sm);
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .vol-lbl { font-size: 0.78rem; color: var(--success); font-weight: 600; }
+    .vol-val { font-size: 1.35rem; font-weight: 800; color: var(--success); }
+    .vol-unit { font-size: 0.78rem; color: var(--success); }
+
+    /* ============================================================
+       11. PHOTO UPLOAD
+    ============================================================ */
+    .photo-drop {
+      border: 2px dashed var(--border);
+      border-radius: var(--r-md);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: #fafcff;
+    }
+    .photo-drop:hover, .photo-drop.dragover {
+      border-color: var(--primary);
+      background: var(--primary-xlight);
+    }
+    .photo-drop i { font-size: 1.8rem; color: var(--primary); margin-bottom: 7px; }
+    .photo-drop p { font-size: 0.87rem; font-weight: 600; color: var(--text); }
+    .photo-drop span { font-size: 0.77rem; color: var(--text-muted); }
+    .photo-drop input[type="file"] { display: none; }
+    .photo-drop #dropCountLabel { display: block; color: var(--primary); font-weight: 600; margin-top: 8px; font-size: 0.82rem; }
+    .photo-thumbs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .photo-thumb {
+      position: relative;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      aspect-ratio: 1;
+      border: 1.5px solid var(--border);
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-thumb .rm-thumb {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      background: rgba(220,38,38,0.88);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ============================================================
+       12. LIVE PREVIEW PANEL
+    ============================================================ */
+    .preview-panel {
+      background: linear-gradient(135deg, var(--primary-xlight), #e8f4fd);
+      border: 1.5px solid var(--primary-light);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+    }
+    .preview-panel h4 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .prev-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.82rem;
+    }
+    .prev-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .prev-lbl { color: var(--text-muted); font-weight: 500; }
+    .prev-val { color: var(--text); font-weight: 600; max-width: 58%; text-align: right; word-break: break-word; }
+
+    /* ============================================================
+       13. BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--r-sm);
+      font-size: 0.86rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(26,120,194,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26,120,194,0.45); }
+    .btn-success {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(22,163,74,0.35);
+    }
+    .btn-success:hover { transform: translateY(-1px); }
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #b91c1c); color: #fff; }
+    .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text-muted); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover { background: var(--gray-light); }
+    .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+    .btn-lg { padding: 14px 28px; font-size: 0.96rem; }
+    .btn-block { width: 100%; }
+    .btn-icon { padding: 8px; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn-print-action {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--r-sm);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+      width: 100%;
+      transition: all var(--transition);
+    }
+    .btn-print-action:hover { background: var(--primary-dark); }
+
+    /* ============================================================
+       14. DATA TABLE (dashboard recent + user mgmt)
+    ============================================================ */
+    .tbl-wrap { overflow-x: auto; border-radius: var(--r-md); border: 1px solid var(--border); }
+    .data-tbl { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .data-tbl th {
+      background: var(--primary);
+      color: #fff;
+      padding: 11px 14px;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .data-tbl td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .data-tbl tbody tr:last-child td { border-bottom: none; }
+    .data-tbl tbody tr:nth-child(even) { background: #f8faff; }
+    .data-tbl tbody tr:hover { background: var(--primary-xlight); }
+    .data-tbl th:first-child { border-radius: var(--r-sm) 0 0 0; }
+    .data-tbl th:last-child  { border-radius: 0 var(--r-sm) 0 0; }
+
+    /* ============================================================
+       15. BADGES
+    ============================================================ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .badge-blue   { background: var(--primary-light); color: var(--primary); }
+    .badge-green  { background: var(--success-light); color: var(--success); }
+    .badge-red    { background: var(--danger-light);  color: var(--danger); }
+    .badge-yellow { background: var(--warning-light); color: var(--warning); }
+    .badge-gray   { background: var(--gray-light); color: var(--gray); }
+    .badge-teal   { background: var(--teal-light); color: var(--teal); }
+
+    /* ============================================================
+       16. FILTER ROW
+    ============================================================ */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-row select, .filter-row input {
+      padding: 8px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 0.83rem;
+      outline: none;
+      background: var(--card);
+      color: var(--text);
+      font-family: var(--font);
+      transition: border-color var(--transition);
+      min-width: 130px;
+    }
+    .filter-row select:focus, .filter-row input:focus { border-color: var(--primary); }
+
+    /* ============================================================
+       17. RIWAYAT CARDS
+    ============================================================ */
+    .riwayat-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .riwayat-card:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+    .riwayat-summary {
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      user-select: none;
+    }
+    .riwayat-ico {
+      width: 42px;
+      height: 42px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      flex-shrink: 0;
+    }
+    .riwayat-info { flex: 1; min-width: 0; }
+    .riwayat-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .riwayat-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .riwayat-vol { font-size: 0.83rem; font-weight: 700; color: var(--success); white-space: nowrap; }
+    .riwayat-toggle i { color: var(--text-light); transition: transform 0.25s; }
+    .riwayat-card.expanded .riwayat-toggle i { transform: rotate(180deg); }
+    .riwayat-detail {
+      display: none;
+      padding: 14px 16px;
+      border-top: 1px dashed var(--border);
+    }
+    .riwayat-card.expanded .riwayat-detail { display: block; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .detail-item .di-lbl { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .detail-item .di-val { font-size: 0.86rem; color: var(--text); font-weight: 600; margin-top: 2px; word-break: break-word; }
+    .ruas-box {
+      background: #f8faff;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.75;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+    .ruas-box .line-pangkas { color: var(--danger); font-weight: 700; }
+    .riwayat-foto { margin-top: 12px; }
+    .riwayat-foto img { border-radius: var(--r-sm); box-shadow: var(--shadow-sm); max-height: 220px; width: auto; }
+
+    /* ============================================================
+       18. PETA POHON TABLE
+    ============================================================ */
+    .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+    .styled-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .styled-table th {
+      background-color: var(--primary);
+      font-weight: 600;
+      color: #fff;
+      padding: 10px 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .styled-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; white-space: nowrap; }
+    .styled-table tbody tr:nth-child(even) { background-color: #eff6ff; }
+    .styled-table tbody tr:hover { background-color: #e0effe; }
+    .print-header { display: none; }
+
+    /* ============================================================
+       19. MODAL
+    ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.62);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.22s;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-box {
+      background: var(--card);
+      border-radius: var(--r-xl);
+      width: 100%;
+      max-width: 460px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(18px) scale(0.97);
+      transition: all 0.22s cubic-bezier(0.34,1.4,0.64,1);
+    }
+    .modal-overlay.active .modal-box { transform: translateY(0) scale(1); }
+    .modal-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      z-index: 1;
+    }
+    .modal-head h3 { font-size: 0.96rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .modal-head h3 i { color: var(--primary); }
+    .modal-close { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); padding: 4px; line-height: 1; }
+    .modal-close:hover { color: var(--danger); }
+    .modal-body { padding: 22px; }
+    .modal-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* ============================================================
+       20. TOAST
+    ============================================================ */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--text);
+      color: #fff;
+      padding: 11px 22px;
+      border-radius: 50px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { background: var(--success); }
+    #toast.error   { background: var(--danger); }
+
+    /* ============================================================
+       21. EMPTY STATE
+    ============================================================ */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 10px; display: block; opacity: 0.25; }
+    .empty-state p { font-size: 0.88rem; }
+
+    /* ============================================================
+       22. USER MGT ACTIONS
+    ============================================================ */
+    .tbl-actions { display: flex; gap: 6px; }
+
+    /* ============================================================
+       23. PRINT STYLES
+    ============================================================ */
+    @media print {
+      @page { margin: 10mm; }
+      body { background: #fff; margin: 0; padding: 0; }
+      #app-login, .sidebar, .sidebar-overlay, .topbar, .filter-row,
+      .page-header, .btn-print-action, #toast, .modal-overlay,
+      #page-dashboard, #page-laporan, #page-riwayat, #page-user-mgmt,
+      .card-head .btn, .print-header { display: none !important; }
+      .main-content { margin-left: 0 !important; padding: 0 !important; }
+      .page-content { padding: 0; }
+      #page-peta-pohon { display: block !important; padding: 15mm 20mm !important; box-sizing: border-box; width: 100%; }
+      .print-header-row { display: table-row !important; }
+      .table-responsive { border: none; overflow: visible; }
+      .styled-table { font-size: 9.5pt; border: none; width: 100%; }
+      .styled-table th {
+        background-color: #1a78c2 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 7px 10px;
+        border: 1px solid #888;
+      }
+      .styled-table td { border-bottom: 1px solid #888; border-right: 1px solid #888; white-space: normal; padding: 6px 10px; }
+      .styled-table td:first-child { border-left: 1px solid #888; }
+      .styled-table tbody tr:nth-child(even) td {
+        background-color: #eff6ff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    /* ============================================================
+       24. RESPONSIVE / MOBILE
+    ============================================================ */
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay { display: block; opacity: 0; pointer-events: none; }
+      .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+      .main-content { margin-left: 0; }
+      .topbar-hamburger { display: flex; }
+      .topbar { padding: 0 14px; }
+      .page-content { padding: 14px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .filter-row { flex-direction: column; align-items: stretch; }
+      .filter-row select, .filter-row input { min-width: unset; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 420px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-num { font-size: 1.3rem; }
+    }
+  </style>
+
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN PAGE
+============================================================ -->
+<div id="app-login">
+  <div class="login-bg-circles">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <!-- Combined Tree + TM Tower SVG Logo -->
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Tree -->
+          <polygon points="24,58 38,30 12,30" fill="#16a34a" opacity="0.9"/>
+          <polygon points="24,48 36,22 12,22" fill="#22c55e"/>
+          <rect x="21" y="58" width="6" height="10" rx="2" fill="#15803d"/>
+          <!-- TM Tiang -->
+          <rect x="50" y="20" width="4" height="42" rx="1.5" fill="#1a78c2"/>
+          <rect x="40" y="28" width="24" height="4" rx="2" fill="#0f5a9e"/>
+          <rect x="38" y="22" width="4" height="10" rx="1.5" fill="#1a78c2"/>
+          <rect x="62" y="22" width="4" height="10" rx="1.5" fill="#1a78c2"/>
+          <!-- Isolators -->
+          <circle cx="40" cy="22" r="2.5" fill="#64748b"/>
+          <circle cx="64" cy="22" r="2.5" fill="#64748b"/>
+          <circle cx="52" cy="20" r="2.5" fill="#64748b"/>
+        </svg>
+      </div>
+      <h1>HARROW</h1>
+      <p>Realisasi ROW &mdash; Sistem Pelaporan Lapangan</p>
+    </div>
+    <div class="login-divider"></div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginUsername">Username</label>
+      <div class="login-input-wrap">
+        <i class="fa-solid fa-user prefix"></i>
+        <input type="text" id="loginUsername" placeholder="Masukkan username">
+      </div>
+    </div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginPassword">Password</label>
+      <div class="login-input-wrap">
+        <i class="fa-solid fa-lock prefix"></i>
+        <input type="password" id="loginPassword" placeholder="Masukkan password">
+        <button class="toggle-pw" type="button" onclick="togglePw()" id="togglePwBtn">
+          <i class="fa-solid fa-eye" id="togglePwIcon"></i>
+        </button>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; font-size: 0.85rem;">
+      <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted); font-weight: 500;">
+        <input type="checkbox" id="loginRemember" style="accent-color: var(--primary); width: 14px; height: 14px;"> Ingat Saya
+      </label>
+      <a href="#" onclick="forgotPassword(event)" style="color: var(--primary); text-decoration: none; font-weight: 600;">Lupa Password?</a>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="login()">
+      <div class="spinner-sm" id="loginSpinner"></div>
+      <i class="fa-solid fa-right-to-bracket" id="loginBtnIcon"></i>
+      <span id="loginBtnText">Masuk</span>
+    </button>
+    <div class="login-error" id="loginError">
+      <i class="fa-solid fa-circle-xmark"></i>
+      <span id="loginErrorMsg">Username atau password salah.</span>
+    </div>
+    <div class="login-version">HARROW v2.0</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP LAYOUT
+============================================================ -->
+<div id="app-main" style="display: none;">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-icon-wrap">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+            <polygon points="10,28 18,10 6,10" fill="#22c55e" opacity="0.9"/>
+            <rect x="15" y="8" width="3" height="20" rx="1" fill="#93c5fd"/>
+            <rect x="10" y="13" width="13" height="2.5" rx="1" fill="#fff"/>
+            <rect x="9" y="9" width="2.5" height="6" rx="1" fill="#93c5fd"/>
+            <rect x="21" y="9" width="2.5" height="6" rx="1" fill="#93c5fd"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>HARROW</h2>
+          <p>Realisasi ROW System</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-user-box">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">-</div>
+        <span class="role-badge" id="sidebarRole">-</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i> Dashboard
+      </button>
+      <button class="nav-item" data-page="laporan" onclick="showPage('laporan')">
+        <i class="fa-solid fa-file-circle-plus"></i> Form Laporan
+      </button>
+      <button class="nav-item" data-page="riwayat" data-role="Admin,Staff" onclick="showPage('riwayat')">
+        <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pekerjaan
+      </button>
+      <button class="nav-item" data-page="peta-pohon" data-role="Admin,Staff" onclick="showPage('peta-pohon')">
+        <i class="fa-solid fa-map-location-dot"></i> Rekap Peta Pohon
+      </button>
+      <div class="nav-section-label" data-role="Admin">Administrasi</div>
+      <button class="nav-item" data-page="user-mgmt" data-role="Admin" onclick="showPage('user-mgmt')">
+        <i class="fa-solid fa-users-gear"></i> Manajemen User
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <button class="topbar-hamburger" id="hamburger" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-user-pill">
+        <div class="topbar-avatar" id="topbarAvatar">?</div>
+        <span class="topbar-name" id="topbarName">-</span>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: DASHBOARD
+    ============================================================ -->
+    <div class="page-content" id="page-dashboard">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard</h2>
+        <p id="dashboardGreeting">Selamat datang!</p>
+      </div>
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-laporan">0</div>
+            <div class="kpi-lbl">Total Laporan</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon teal"><i class="fa-solid fa-file-invoice"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-wo">0</div>
+            <div class="kpi-lbl">Total WO</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="fa-solid fa-tree"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-pohon">0</div>
+            <div class="kpi-lbl">Total Pohon (Baris)</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="fa-solid fa-road"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-volume">0</div>
+            <div class="kpi-lbl">Total Volume (KM)</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i class="fa-solid fa-camera"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-foto">0</div>
+            <div class="kpi-lbl">Laporan Foto</div>
+          </div>
+        </div>
+      </div>
+      <!-- RECENT TABLE -->
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-list"></i> 5 Laporan Terakhir</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="tbl-wrap" style="border:none;border-radius:0;">
+            <table class="data-tbl">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Tanggal</th>
+                  <th>Penyulang</th>
+                  <th>Petugas</th>
+                  <th>Volume</th>
+                </tr>
+              </thead>
+              <tbody id="recent-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: FORM LAPORAN
+    ============================================================ -->
+    <div class="page-content" id="page-laporan" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-file-circle-plus"></i> Form Laporan Baru</h2>
+        <p>Isi semua field yang diperlukan, lalu kirim laporan.</p>
+      </div>
+
+      <!-- SECTION: INFORMASI PETUGAS -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-user-tie"></i>
+          <h3>Informasi Petugas</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal Eksekusi <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-calendar-day inp-icon"></i>
+                <input type="date" class="form-control" id="tanggal" oninput="updatePreview()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nama Petugas <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-user inp-icon"></i>
+                <input type="text" class="form-control" id="namaPetugas" placeholder="Contoh: BUDI SANTOSO"
+                  oninput="toUpperField('namaPetugas'); updatePreview()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: LOKASI -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-location-dot"></i>
+          <h3>Lokasi & WO</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Penyulang <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-bolt inp-icon"></i>
+                <input type="text" class="form-control" id="penyulang" placeholder="Contoh: PTB / CKLW"
+                  oninput="toUpperField('penyulang'); updatePreview()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">No. WO</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-file-invoice inp-icon"></i>
+                <input type="text" class="form-control" id="noWo" placeholder="Nomor Work Order"
+                  oninput="toUpperField('noWo'); updatePreview()">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Titik Koordinat (Tikor Awal)</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-map-pin inp-icon"></i>
+              <input type="text" class="form-control" id="koordinat" placeholder="Contoh: -6.1234, 106.5678"
+                oninput="updatePreview()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: DETAIL PEKERJAAN -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-list-check"></i>
+          <h3>Detail Pekerjaan</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label class="form-label">Ruas / Segmen (Tempel Laporan WA) <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-align-left inp-icon top-align"></i>
+              <textarea class="form-control" id="ruasSegmen"
+                placeholder="Tempel laporan dari WhatsApp di sini..."
+                oninput="onRuasInput()"></textarea>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:5px;">
+              <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i>
+              Sistem otomatis menghitung KM dari baris yang mengandung kata TEBANG / PANGKAS.
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Volume (Otomatis Terhitung)</label>
+            <div class="vol-display" id="volDisplay">
+              <span class="vol-lbl"><i class="fa-solid fa-road"></i> Total Volume</span>
+              <div>
+                <span class="vol-val" id="volVal">0</span>
+                <span class="vol-unit"> Kms</span>
+              </div>
+            </div>
+            <input type="hidden" id="volume" value="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: DOKUMENTASI -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-camera"></i>
+          <h3>Dokumentasi Foto</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="photo-drop" id="dropArea">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Tarik &amp; Lepas Foto di Sini</p>
+            <span>Atau klik untuk memilih (maks. 9 foto)</span>
+            <span id="dropCountLabel">Belum ada foto dipilih</span>
+            <input type="file" id="fotoDok" accept="image/*" multiple>
+          </div>
+          <div class="photo-thumbs" id="photoThumbs"></div>
+        </div>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-eye"></i>
+          <h3>Ringkasan Laporan (Preview)</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="preview-panel">
+            <h4><i class="fa-solid fa-eye"></i> Pratinjau Sebelum Kirim</h4>
+            <div class="prev-row"><span class="prev-lbl">Tanggal</span><span class="prev-val" id="prev-tgl">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Petugas</span><span class="prev-val" id="prev-petugas">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Penyulang</span><span class="prev-val" id="prev-penyulang">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">No. WO</span><span class="prev-val" id="prev-wo">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Volume</span><span class="prev-val" id="prev-vol">0 Kms</span></div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-lg" style="flex:2;min-width:180px;" id="btnSubmit" onclick="submitLaporan()">
+              <div class="spinner-sm" id="btnSpinner"></div>
+              <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
+              <span id="btnText">Kirim Laporan</span>
+            </button>
+            <button class="btn btn-outline" onclick="resetForm()" style="flex:1;">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: RIWAYAT
+    ============================================================ -->
+    <div class="page-content" id="page-riwayat" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pekerjaan</h2>
+        <p>Seluruh laporan yang pernah dikirimkan oleh tim.</p>
+      </div>
+      <div class="filter-row">
+        <select id="riwayat-bulan" onchange="applyRiwayatFilter()"><option value="">Semua Bulan</option></select>
+        <select id="riwayat-tahun" onchange="applyRiwayatFilter()"><option value="">Semua Tahun</option></select>
+        <select id="riwayat-penyulang" onchange="applyRiwayatFilter()"><option value="">Semua Penyulang</option></select>
+        <input type="text" id="riwayat-search" placeholder="&#xf002; Cari..." oninput="applyRiwayatFilter()">
+      </div>
+      <div id="riwayat-container">
+        <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Memuat data...</p></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: PETA POHON
+    ============================================================ -->
+    <div class="page-content" id="page-peta-pohon" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-map-location-dot"></i> Rekap Peta Pohon</h2>
+        <p>Analisis data tiang per penyulang berdasarkan laporan yang masuk.</p>
+      </div>
+      <div class="filter-row">
+        <select id="petaPenyulang" onchange="renderPetaPohon()" style="min-width:200px;">
+          <option value="">-- Pilih Penyulang --</option>
+        </select>
+      </div>
+      <div class="print-header" style="display:none;">
+        <h2>REKAP PETA POHON (HARROW)</h2>
+        <h3>Penyulang: -</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="styled-table">
+          <thead>
+            <tr class="print-header-row" style="display:none;">
+              <th colspan="6" style="background-color:#fff !important; color:#000 !important; text-align:center; padding:15px 0 25px 0; border:none !important;">
+                <h2 style="font-size:16pt; font-weight:bold; margin:0 0 6px 0; letter-spacing:1px; color:#000;">REKAP PETA POHON (HARROW)</h2>
+                <h3 id="printPenyulangName" style="font-size:12pt; font-weight:normal; margin:0; color:#333;">Penyulang: -</h3>
+              </th>
+            </tr>
+            <tr>
+              <th style="width:5%">No.</th>
+              <th style="width:11%">Tanggal</th>
+              <th style="width:12%">Tikor Awal</th>
+              <th style="width:18%">No. Tiang</th>
+              <th style="width:44%">Keterangan</th>
+              <th style="width:10%">Ket. Gambar</th>
+            </tr>
+          </thead>
+          <tbody id="petaPohonTableBody">
+            <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Pilih penyulang terlebih dahulu.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn-print-action" id="btnPrint" style="display:none;" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+      </button>
+    </div>
+
+    <!-- ============================================================
+         PAGE: USER MANAGEMENT (Admin only)
+    ============================================================ -->
+    <div class="page-content" id="page-user-mgmt" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-users-gear"></i> Manajemen User</h2>
+        <p>Kelola akun pengguna, role, dan hak akses sistem.</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-list-ul"></i> Daftar Pengguna</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddUser()">
+            <i class="fa-solid fa-plus"></i> Tambah User
+          </button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="tbl-wrap" style="border:none;border-radius:0;">
+            <table class="data-tbl">
+              <thead>
+                <tr>
+                  <th>Nama Lengkap</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Dibuat</th>
+                  <th style="width:100px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main><!-- end .main-content -->
+</div><!-- end #app-main -->
+
+<!-- ============================================================
+     MODAL: USER FORM
+============================================================ -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-user-gear"></i> <span id="user-modal-title">Tambah User Baru</span></h3>
+      <button class="modal-close" onclick="closeModal('user-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-id-card inp-icon"></i>
+          <input type="text" class="form-control" id="userNama" placeholder="Nama lengkap petugas">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-at inp-icon"></i>
+            <input type="text" class="form-control" id="userUsername" placeholder="username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-key inp-icon"></i>
+            <input type="text" class="form-control" id="userPassword" placeholder="password">
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-control no-icon" id="userRole">
+            <option value="Petugas">Petugas</option>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control no-icon" id="userStatus">
+            <option value="AKTIF">Aktif</option>
+            <option value="NONAKTIF">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('user-modal')">Batal</button>
+      <button class="btn btn-primary" id="save-user-btn" onclick="saveUserForm()">
+        <i class="fa-solid fa-floppy-disk"></i> Simpan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: LOGOUT CONFIRM
+============================================================ -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-right-from-bracket"></i> Konfirmasi Keluar</h3>
+      <button class="modal-close" onclick="closeModal('logout-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+      <p style="font-size: 1rem; color: var(--text);">Apakah Anda yakin ingin keluar dari aplikasi?</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('logout-modal')">Batal</button>
+      <button class="btn btn-danger" onclick="doLogout()">
+        <i class="fa-solid fa-power-off"></i> Ya, Keluar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: DELETE USER CONFIRM
+============================================================ -->
+<div class="modal-overlay" id="delete-user-modal">
+  <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-triangle-exclamation"></i> Konfirmasi Hapus</h3>
+      <button class="modal-close" onclick="closeModal('delete-user-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+      <p style="font-size: 1rem; color: var(--text);" id="delete-user-msg"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('delete-user-modal')">Batal</button>
+      <button class="btn btn-danger" onclick="doDeleteUser()">
+        <i class="fa-solid fa-trash"></i> Hapus User
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Canvas for photo processing (hidden) -->
+<canvas id="canvas" style="display:none;"></canvas>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast"><i class="fa-solid fa-circle-check"></i> <span></span></div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+// =====================================================
+// STATE VARIABLES
+// =====================================================
+let currentUser = null;
+let allData = [];
+let dataLoaded = false;
+let editingUserId = null;
+const photoFiles = [];
+let kolaseBase64 = '';
+
+// =====================================================
+// INITIALIZATION
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Load saved credentials if 'Remember Me' was used
+  const savedCreds = localStorage.getItem('harrow_saved_creds');
+  if (savedCreds) {
+    try {
+      const c = JSON.parse(savedCreds);
+      document.getElementById('loginUsername').value = c.u || '';
+      document.getElementById('loginPassword').value = c.p || '';
+      document.getElementById('loginRemember').checked = true;
+    } catch(e) {}
+  }
+
+  const stored = sessionStorage.getItem('harrow_user');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      startApp();
+    } catch(e) {
+      showLoginPage();
+    }
+  } else {
+    showLoginPage();
+  }
+
+  setupPhotoUpload();
+
+  document.getElementById('loginPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+  document.getElementById('loginUsername').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+  });
+
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  updatePreview();
+});
+
+// =====================================================
+// AUTH: LOGIN / LOGOUT
+// =====================================================
+function showLoginPage() {
+  document.getElementById('app-login').style.display = 'flex';
+  document.getElementById('app-main').style.display = 'none';
+  if (typeof resetLoginBtn === 'function') resetLoginBtn();
+}
+
+function togglePw() {
+  const inp = document.getElementById('loginPassword');
+  const ico = document.getElementById('togglePwIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.className = 'fa-solid fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    ico.className = 'fa-solid fa-eye';
+  }
+}
+
+function forgotPassword(e) {
+  e.preventDefault();
+  showLoginErr('Hubungi Administrator untuk mereset password.');
+}
+
+function login() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const btn      = document.getElementById('loginBtn');
+  const spinner  = document.getElementById('loginSpinner');
+  const btnIcon  = document.getElementById('loginBtnIcon');
+  const errBox   = document.getElementById('loginError');
+
+  if (!username || !password) {
+    showLoginErr('Username dan password wajib diisi.');
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnIcon.style.display = 'none';
+  document.getElementById('loginBtnText').textContent = 'Memverifikasi...';
+  errBox.classList.remove('show');
+
+  google.script.run
+    .withSuccessHandler(function(user) {
+      if (user) {
+        currentUser = user;
+        sessionStorage.setItem('harrow_user', JSON.stringify(user));
+        if (document.getElementById('loginRemember').checked) {
+          localStorage.setItem('harrow_saved_creds', JSON.stringify({u: username, p: password}));
+        } else {
+          localStorage.removeItem('harrow_saved_creds');
+        }
+        startApp();
+      } else {
+        showLoginErr('Username atau password salah. Coba lagi.');
+        resetLoginBtn();
+      }
+    })
+    .withFailureHandler(function(err) {
+      showLoginErr('Terjadi kesalahan: ' + (err.message || err));
+      resetLoginBtn();
+    })
+    .authenticateUser(username, password);
+}
+
+function showLoginErr(msg) {
+  document.getElementById('loginErrorMsg').textContent = msg;
+  document.getElementById('loginError').classList.add('show');
+}
+
+function resetLoginBtn() {
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false;
+  document.getElementById('loginSpinner').style.display = 'none';
+  document.getElementById('loginBtnIcon').style.display = 'inline';
+  document.getElementById('loginBtnText').textContent = 'Masuk';
+}
+
+function logout() {
+  openModal('logout-modal');
+}
+
+function doLogout() {
+  closeModal('logout-modal');
+  sessionStorage.removeItem('harrow_user');
+  currentUser = null;
+  allData = [];
+  dataLoaded = false;
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  showLoginPage();
+}
+
+// =====================================================
+// START APP
+// =====================================================
+function startApp() {
+  document.getElementById('app-login').style.display = 'none';
+  document.getElementById('app-main').style.display = 'flex';
+
+  const initials = getInitials(currentUser.nama);
+
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent   = currentUser.nama;
+  document.getElementById('sidebarRole').textContent   = currentUser.role;
+  document.getElementById('sidebarRole').className     = 'role-badge ' + currentUser.role;
+
+  document.getElementById('topbarAvatar').textContent  = initials;
+  document.getElementById('topbarName').textContent    = currentUser.nama;
+
+  document.getElementById('dashboardGreeting').textContent =
+    'Selamat datang, ' + currentUser.nama + '! Berikut ringkasan aktivitas sistem.';
+
+  applyRBAC();
+  showPage('dashboard');
+  loadAllData();
+
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  updatePreview();
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+// =====================================================
+// RBAC
+// =====================================================
+function applyRBAC() {
+  const role = currentUser ? currentUser.role : '';
+  document.querySelectorAll('[data-role="Admin"]').forEach(el => {
+    el.style.display = (role === 'Admin') ? '' : 'none';
+  });
+  document.querySelectorAll('[data-role="Admin,Staff"]').forEach(el => {
+    el.style.display = (role === 'Admin' || role === 'Staff') ? '' : 'none';
+  });
+}
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function showPage(page) {
+  document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
+  const target = document.getElementById('page-' + page);
+  if (target) target.style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const activeNav = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (activeNav) activeNav.classList.add('active');
+
+  const titles = {
+    'dashboard'  : 'Dashboard',
+    'laporan'    : 'Form Laporan',
+    'riwayat'    : 'Riwayat Pekerjaan',
+    'peta-pohon' : 'Rekap Peta Pohon',
+    'user-mgmt'  : 'Manajemen User'
+  };
+  document.getElementById('topbarTitle').textContent = titles[page] || 'HARROW';
+
+  closeSidebar();
+
+  if (page === 'dashboard'   && dataLoaded) renderDashboard();
+  if (page === 'riwayat'     && dataLoaded) { populateRiwayatFilters(); renderRiwayat(); }
+  if (page === 'peta-pohon'  && dataLoaded) initPetaPohon();
+  if (page === 'user-mgmt')                 loadUsers();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// =====================================================
+// DATA LOADING
+// =====================================================
+function loadAllData() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      allData = data || [];
+      dataLoaded = true;
+      renderDashboard();
+      populatePenyulangOptions();
+      populateRiwayatFilters();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal memuat data: ' + (err.message || err), 'error');
+    })
+    .getRiwayatData();
+}
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+function renderDashboard() {
+  if (!dataLoaded) return;
+
+  let totalLaporan = allData.length;
+  let totalWO = new Set(allData.map(d => d.noWo).filter(w => w && w !== '-')).size;
+  let totalPohon = 0, totalVolume = 0, totalFoto = 0;
+
+  allData.forEach(item => {
+    totalVolume += parseFloat(item.volume) || 0;
+    if (item.fotoUrl) totalFoto++;
+    const lines = ((item.ruasFull || '') + '\n' + (item.ruasSegmen || '')).toUpperCase().split('\n');
+    lines.forEach(line => {
+      if (line.includes('PANGKAS') || line.includes('TEBANG')) totalPohon++;
+    });
+  });
+
+  document.getElementById('kpi-laporan').textContent = totalLaporan;
+  document.getElementById('kpi-wo').textContent      = totalWO;
+  document.getElementById('kpi-pohon').textContent   = totalPohon;
+  document.getElementById('kpi-volume').textContent  = totalVolume.toFixed(2);
+  document.getElementById('kpi-foto').textContent    = totalFoto;
+
+  renderRecentTable(allData.slice(0, 5));
+}
+
+function renderRecentTable(data) {
+  const tbody = document.getElementById('recent-tbody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada data laporan.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((item, i) => `
+    <tr>
+      <td style="text-align:center;">${item.noUrut || i + 1}</td>
+      <td>${item.tanggal || '-'}</td>
+      <td><span class="badge badge-blue">${item.penyulang || '-'}</span></td>
+      <td>${item.namaPetugas || '-'}</td>
+      <td><span class="badge badge-green">${parseFloat(item.volume || 0).toFixed(2)} KM</span></td>
+    </tr>
+  `).join('');
+}
+
+// =====================================================
+// FORM LAPORAN
+// =====================================================
+function updatePreview() {
+  document.getElementById('prev-tgl').textContent      = document.getElementById('tanggal').value || '-';
+  document.getElementById('prev-petugas').textContent  = document.getElementById('namaPetugas').value || '-';
+  document.getElementById('prev-penyulang').textContent= document.getElementById('penyulang').value || '-';
+  document.getElementById('prev-wo').textContent       = document.getElementById('noWo').value || '-';
+  const vol = document.getElementById('volume').value || '0';
+  document.getElementById('prev-vol').textContent = parseFloat(vol).toFixed(2) + ' Kms';
+}
+
+function toUpperField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const pos = el.selectionStart;
+  el.value = el.value.toUpperCase();
+  try { el.setSelectionRange(pos, pos); } catch(e) {}
+}
+
+function onRuasInput() {
+  toUpperField('ruasSegmen');
+  const text  = document.getElementById('ruasSegmen').value;
+  const lines = text.split('\n');
+  let count   = 0;
+  lines.forEach(line => {
+    const up = line.toUpperCase();
+    if (up.includes('TEBANG') || up.includes('PANGKAS')) count++;
+  });
+  const km = parseFloat(((count * 50) / 100).toFixed(2));
+  document.getElementById('volume').value = km > 0 ? km : 0;
+  document.getElementById('volVal').textContent = km > 0 ? km : '0';
+  updatePreview();
+}
+
+function setupPhotoUpload() {
+  const dropArea  = document.getElementById('dropArea');
+  const fileInput = document.getElementById('fotoDok');
+  if (!dropArea || !fileInput) return;
+
+  ['dragenter','dragover','dragleave','drop'].forEach(ev =>
+    dropArea.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
+  );
+  ['dragenter','dragover'].forEach(ev =>
+    dropArea.addEventListener(ev, () => dropArea.classList.add('dragover'))
+  );
+  ['dragleave','drop'].forEach(ev =>
+    dropArea.addEventListener(ev, () => dropArea.classList.remove('dragover'))
+  );
+  dropArea.addEventListener('drop', e => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    addPhotos(files);
+  });
+  dropArea.addEventListener('click', e => {
+    if (e.target !== fileInput) fileInput.click();
+  });
+  fileInput.addEventListener('change', () => {
+    addPhotos(Array.from(fileInput.files));
+    fileInput.value = '';
+  });
+}
+
+function addPhotos(files) {
+  files.forEach(f => { if (photoFiles.length < 9) photoFiles.push(f); });
+  renderThumbnails();
+  if (photoFiles.length > 0) generateKolase();
+}
+
+function removePhoto(index) {
+  photoFiles.splice(index, 1);
+  renderThumbnails();
+  if (photoFiles.length > 0) generateKolase();
+  else kolaseBase64 = '';
+}
+
+function renderThumbnails() {
+  const container = document.getElementById('photoThumbs');
+  const lbl       = document.getElementById('dropCountLabel');
+  if (photoFiles.length === 0) {
+    container.innerHTML = '';
+    lbl.textContent = 'Belum ada foto dipilih';
+    return;
+  }
+  lbl.textContent = photoFiles.length + ' foto dipilih';
+  container.innerHTML = photoFiles.map((f, i) => `
+    <div class="photo-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="foto ${i+1}">
+      <button class="rm-thumb" onclick="removePhoto(${i})"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  `).join('');
+}
+
+async function generateKolase() {
+  if (photoFiles.length === 0) { kolaseBase64 = ''; return; }
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+  const n      = Math.min(photoFiles.length, 9);
+  const cols   = Math.min(n, 3);
+  const rows   = Math.ceil(n / cols);
+  const cW = 400, cH = 300;
+  canvas.width  = cols * cW;
+  canvas.height = rows * cH;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < n; i++) {
+    const img = await loadImgFile(photoFiles[i]);
+    ctx.drawImage(img, (i % cols) * cW, Math.floor(i / cols) * cH, cW, cH);
+  }
+  kolaseBase64 = canvas.toDataURL('image/jpeg', 0.8);
+}
+
+function loadImgFile(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => { const img = new Image(); img.onload = () => resolve(img); img.src = e.target.result; };
+    reader.readAsDataURL(file);
+  });
+}
+
+function submitLaporan() {
+  const tanggal    = document.getElementById('tanggal').value;
+  const namaPetugas= document.getElementById('namaPetugas').value.trim();
+  const penyulang  = document.getElementById('penyulang').value.trim();
+  const noWo       = document.getElementById('noWo').value.trim();
+  const koordinat  = document.getElementById('koordinat').value.trim();
+  const ruasSegmen = document.getElementById('ruasSegmen').value.trim();
+  const volume     = parseFloat(document.getElementById('volume').value) || 0;
+
+  if (!tanggal || !namaPetugas || !penyulang || !ruasSegmen) {
+    showToast('Tanggal, Petugas, Penyulang & Ruas wajib diisi!', 'error');
+    return;
+  }
+
+  const ruasFilter = ruasSegmen.split('\n').filter(line => {
+    const up = line.toUpperCase();
+    return up.includes('TEBANG') || up.includes('PANGKAS');
+  }).join('\n');
+
+  const btn     = document.getElementById('btnSubmit');
+  const spinner = document.getElementById('btnSpinner');
+  const btnIcon = document.getElementById('btnIcon');
+  const btnText = document.getElementById('btnText');
+  btn.disabled         = true;
+  spinner.style.display= 'block';
+  btnIcon.style.display= 'none';
+  btnText.textContent  = 'Mengirim...';
+
+  const payload = { tanggal, namaPetugas, penyulang, noWo, koordinat, ruasSegmen: ruasFilter, volume, ruasFull: ruasSegmen, fotoKolase: kolaseBase64 };
+
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('Laporan berhasil dikirim!', 'success');
+      resetForm();
+      resetSubmitBtn();
+      dataLoaded = false;
+      loadAllData();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      resetSubmitBtn();
+    })
+    .processForm(payload);
+}
+
+function resetSubmitBtn() {
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = false;
+  document.getElementById('btnSpinner').style.display = 'none';
+  document.getElementById('btnIcon').style.display    = 'inline';
+  document.getElementById('btnText').textContent      = 'Kirim Laporan';
+}
+
+function resetForm() {
+  ['namaPetugas','penyulang','noWo','koordinat','ruasSegmen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('volume').value  = '0';
+  document.getElementById('volVal').textContent = '0';
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  photoFiles.length = 0;
+  kolaseBase64 = '';
+  renderThumbnails();
+  updatePreview();
+}
+
+// =====================================================
+// RIWAYAT
+// =====================================================
+function populateRiwayatFilters() {
+  const bulanSet = new Set(), tahunSet = new Set(), penySet = new Set();
+  allData.forEach(item => {
+    if (item.tanggal) {
+      const p = item.tanggal.split('-');
+      if (p.length >= 2) { tahunSet.add(p[0]); bulanSet.add(p[1]); }
+    }
+    if (item.penyulang && item.penyulang !== '-') penySet.add(item.penyulang);
+  });
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+  const selB = document.getElementById('riwayat-bulan');
+  selB.innerHTML = '<option value="">Semua Bulan</option>' +
+    [...bulanSet].sort().map(m => `<option value="${m}">${months[parseInt(m)-1] || m}</option>`).join('');
+
+  const selT = document.getElementById('riwayat-tahun');
+  selT.innerHTML = '<option value="">Semua Tahun</option>' +
+    [...tahunSet].sort((a,b) => b-a).map(t => `<option value="${t}">${t}</option>`).join('');
+
+  const selP = document.getElementById('riwayat-penyulang');
+  selP.innerHTML = '<option value="">Semua Penyulang</option>' +
+    [...penySet].sort().map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function renderRiwayat() { applyRiwayatFilter(); }
+
+function applyRiwayatFilter() {
+  const bulan    = document.getElementById('riwayat-bulan').value;
+  const tahun    = document.getElementById('riwayat-tahun').value;
+  const penyulang= document.getElementById('riwayat-penyulang').value;
+  const search   = (document.getElementById('riwayat-search').value || '').toLowerCase();
+
+  const filtered = allData.filter(item => {
+    if (tahun && item.tanggal && !item.tanggal.startsWith(tahun)) return false;
+    if (bulan && item.tanggal && item.tanggal.split('-')[1] !== bulan) return false;
+    if (penyulang && item.penyulang !== penyulang) return false;
+    if (search && !JSON.stringify(item).toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderRiwayatCards(filtered);
+}
+
+function renderRiwayatCards(data) {
+  const container = document.getElementById('riwayat-container');
+  if (!data || data.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Tidak ada data yang cocok dengan filter.</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map((item, idx) => {
+    const lines   = (item.ruasFull || '').split('\n');
+    const ruasHtml= lines.map(line => {
+      const up = line.toUpperCase();
+      return (up.includes('TEBANG') || up.includes('PANGKAS'))
+        ? `<span class="line-pangkas">${line}</span>\n`
+        : line + '\n';
+    }).join('');
+    const fotoHtml= item.fotoUrl
+      ? `<div class="riwayat-foto">
+           <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">FOTO DOKUMENTASI</div>
+           <img src="${item.fotoUrl}" alt="Foto Dokumentasi" loading="lazy">
+         </div>` : '';
+    return `
+      <div class="riwayat-card" id="rcard-${idx}">
+        <div class="riwayat-summary" onclick="toggleRiwayat(${idx})">
+          <div class="riwayat-ico"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="riwayat-info">
+            <div class="riwayat-title">${item.penyulang || '-'} &mdash; ${item.noWo || '-'}</div>
+            <div class="riwayat-meta">${item.tanggal || '-'} &bull; ${item.namaPetugas || '-'}</div>
+          </div>
+          <span class="riwayat-vol">${parseFloat(item.volume || 0).toFixed(2)} KM</span>
+          <div class="riwayat-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="riwayat-detail">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="di-lbl">No. WO</div><div class="di-val">${item.noWo || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Koordinat</div><div class="di-val">${item.koordinat || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Petugas</div><div class="di-val">${item.namaPetugas || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Volume</div><div class="di-val">${parseFloat(item.volume||0).toFixed(2)} KM</div></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">DETAIL RUAS</div>
+            <div class="ruas-box">${ruasHtml}</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="copyRuas(${idx}, event)">
+            <i class="fa-solid fa-copy"></i> Salin Laporan
+          </button>
+          ${fotoHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleRiwayat(idx) {
+  document.getElementById('rcard-' + idx).classList.toggle('expanded');
+}
+
+function copyRuas(idx, ev) {
+  if (ev) ev.stopPropagation();
+  const item = allData[idx] || {};
+  const text = `LAPORAN HARROW\nTanggal: ${item.tanggal}\nPetugas: ${item.namaPetugas}\nPenyulang: ${item.penyulang}\nNo. WO: ${item.noWo}\nVolume: ${item.volume} KM\n\nDETAIL RUAS:\n${item.ruasFull}`;
+  navigator.clipboard.writeText(text).then(() => showToast('Berhasil disalin!', 'success')).catch(() => showToast('Gagal menyalin teks', 'error'));
+}
+
+// =====================================================
+// PETA POHON
+// =====================================================
+function populatePenyulangOptions() {
+  const penySet = new Set(allData.map(d => d.penyulang).filter(p => p && p !== '-'));
+  const sel = document.getElementById('petaPenyulang');
+  if (sel) {
+    sel.innerHTML = '<option value="">-- Pilih Penyulang --</option>' +
+      [...penySet].sort().map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+}
+
+function initPetaPohon() { populatePenyulangOptions(); }
+
+function renderPetaPohon() {
+  const vPenyulang = document.getElementById('petaPenyulang').value;
+  const tBody      = document.getElementById('petaPohonTableBody');
+  const printBtn   = document.getElementById('btnPrint');
+
+  if (!vPenyulang) {
+    tBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Pilih penyulang terlebih dahulu.</td></tr>';
+    printBtn.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('printPenyulangName').textContent = 'Penyulang: ' + vPenyulang;
+
+  const filtered = allData.filter(item => item.penyulang && item.penyulang.toUpperCase() === vPenyulang.toUpperCase());
+  filtered.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+  if (filtered.length === 0) {
+    tBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data untuk penyulang ini.</td></tr>';
+    printBtn.style.display = 'none';
+    return;
+  }
+
+  let rowsHtml = '';
+  let noUrut   = 1;
+
+  filtered.forEach(item => {
+    const textToDisplay = (item.ruasFull ? item.ruasFull : item.ruasSegmen) || '';
+    if (!textToDisplay) return;
+
+    const lines = textToDisplay.split('\n');
+    let isFirst = true;
+
+    lines.forEach(line => {
+      const regexSplit = new RegExp('-(?=[ \t]*' + vPenyulang + ')', 'gi');
+      const chunks     = line.split(regexSplit);
+      let inSection    = false;
+
+      chunks.forEach(chunk => {
+        let cleaned = chunk.trim().replace(/^[-* \t]+/, '').replace(/[-* \t]+$/, '').trim();
+        if (!cleaned) return;
+
+        const upperCleaned = cleaned.toUpperCase();
+        const peny         = vPenyulang.toUpperCase();
+
+        if (upperCleaned.startsWith('SECTION') || upperCleaned.startsWith('SEGMEN')) {
+          inSection = true; return;
+        }
+
+        let noTiang    = '-';
+        let keterangan = cleaned;
+
+        if (upperCleaned.startsWith(peny)) {
+          const parts = cleaned.split(/[ \t]+/);
+          if (parts[0].toUpperCase() === peny && parts.length > 1) {
+            noTiang    = parts[0] + ' ' + parts[1];
+            keterangan = parts.slice(2).join(' ').trim();
+          } else {
+            noTiang    = parts[0];
+            keterangan = parts.slice(1).join(' ').trim();
+          }
+        }
+
+        if (keterangan !== '-') {
+          keterangan = keterangan.replace(/[ \t]*-[ \t]*$/, '').trim();
+          if (!keterangan) keterangan = '-';
+        }
+
+        if (inSection) {
+          if (keterangan === '-') return;
+          else inSection = false;
+        }
+
+        const isPohon  = keterangan.toUpperCase().includes('PANGKAS') || keterangan.toUpperCase().includes('TEBANG');
+        const ketHtml  = isPohon ? `<span style="color:#16a34a;">${keterangan}</span>` : keterangan;
+        const svgT     = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:3px;vertical-align:text-bottom;"><line x1="12" y1="3" x2="12" y2="22"/><line x1="5" y1="8" x2="19" y2="8"/><line x1="5" y1="4" x2="5" y2="8"/><line x1="19" y1="4" x2="19" y2="8"/></svg>`;
+        const gambar   = isPohon
+          ? `<span style="color:#16a34a;font-weight:600;"><i class="fa-solid fa-tree"></i> Pohon</span>`
+          : `<span style="color:#64748b;">${svgT} Tiang</span>`;
+
+        const cellTgl  = isFirst ? (item.tanggal   || '-') : '';
+        const cellTkor = isFirst ? (item.koordinat || '-') : '';
+
+        rowsHtml += `
+          <tr>
+            <td style="text-align:center;">${noUrut++}</td>
+            <td style="white-space:nowrap;">${cellTgl}</td>
+            <td style="white-space:nowrap;">${cellTkor}</td>
+            <td style="white-space:nowrap;color:#111;">${noTiang}</td>
+            <td style="white-space:nowrap;">${ketHtml}</td>
+            <td style="text-align:center;font-size:0.78rem;">${gambar}</td>
+          </tr>`;
+        isFirst = false;
+      });
+    });
+  });
+
+  tBody.innerHTML = rowsHtml || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada data tiang yang dapat ditampilkan.</td></tr>';
+  printBtn.style.display = 'flex';
+}
+
+// =====================================================
+// USER MANAGEMENT
+// =====================================================
+function loadUsers() {
+  const tbody = document.getElementById('users-table-body');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat...</td></tr>';
+
+  google.script.run
+    .withSuccessHandler(renderUsersTable)
+    .withFailureHandler(err => {
+      showToast('Gagal memuat user: ' + (err.message || err), 'error');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--danger);">Gagal memuat data</td></tr>';
+    })
+    .getUsers();
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-table-body');
+  if (!users || users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text-muted);">Belum ada user terdaftar.</td></tr>';
+    return;
+  }
+  const roleColor = { Admin: 'badge-red', Staff: 'badge-green', Petugas: 'badge-yellow' };
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${u.nama || '-'}</strong></td>
+      <td><code style="font-size:0.8rem;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${u.username || '-'}</code></td>
+      <td><span class="badge ${roleColor[u.role] || 'badge-gray'}">${u.role || '-'}</span></td>
+      <td><span class="badge ${u.status === 'AKTIF' ? 'badge-green' : 'badge-gray'}">${u.status || '-'}</span></td>
+      <td>${u.dibuat || '-'}</td>
+      <td>
+        <div class="tbl-actions">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openEditUser('${u.id}')" title="Edit">
+            <i class="fa-solid fa-pen-to-square" style="color:var(--primary);"></i>
+          </button>
+          <button class="btn btn-outline btn-sm btn-icon" onclick="confirmDeleteUser('${u.id}','${u.nama}')" title="Hapus">
+            <i class="fa-solid fa-trash" style="color:var(--danger);"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddUser() {
+  editingUserId = null;
+  document.getElementById('user-modal-title').textContent = 'Tambah User Baru';
+  ['userNama','userUsername','userPassword'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('userRole').value   = 'Petugas';
+  document.getElementById('userStatus').value = 'AKTIF';
+  openModal('user-modal');
+}
+
+function openEditUser(id) {
+  google.script.run
+    .withSuccessHandler(function(users) {
+      const user = (users || []).find(u => u.id === id);
+      if (!user) { showToast('User tidak ditemukan', 'error'); return; }
+      editingUserId = id;
+      document.getElementById('user-modal-title').textContent = 'Edit User';
+      document.getElementById('userNama').value     = user.nama;
+      document.getElementById('userUsername').value = user.username;
+      document.getElementById('userPassword').value = user.password;
+      document.getElementById('userRole').value     = user.role;
+      document.getElementById('userStatus').value   = user.status;
+      openModal('user-modal');
+    })
+    .withFailureHandler(err => showToast('Error: ' + (err.message || err), 'error'))
+    .getUsers();
+}
+
+function saveUserForm() {
+  const nama     = document.getElementById('userNama').value.trim();
+  const username = document.getElementById('userUsername').value.trim();
+  const password = document.getElementById('userPassword').value.trim();
+  const role     = document.getElementById('userRole').value;
+  const status   = document.getElementById('userStatus').value;
+
+  if (!nama || !username || !password) {
+    showToast('Nama, Username, dan Password wajib diisi!', 'error'); return;
+  }
+
+  const payload = { nama, username, password, role, status };
+  if (editingUserId) payload.id = editingUserId;
+
+  const btn = document.getElementById('save-user-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('User berhasil disimpan!', 'success');
+      closeModal('user-modal');
+      loadUsers();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    })
+    .saveUser(payload);
+}
+
+let userToDelete = null;
+
+function confirmDeleteUser(id, nama) {
+  userToDelete = id;
+  document.getElementById('delete-user-msg').textContent = `Hapus user "${nama}"? Tindakan ini tidak dapat dibatalkan.`;
+  openModal('delete-user-modal');
+}
+
+function doDeleteUser() {
+  if (!userToDelete) return;
+  closeModal('delete-user-modal');
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('User berhasil dihapus!', 'success');
+      loadUsers();
+      userToDelete = null;
+    })
+    .withFailureHandler(err => {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      userToDelete = null;
+    })
+    .deleteUser(userToDelete);
+}
+
+// =====================================================
+// MODAL HELPERS
+// =====================================================
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Close modal on overlay click
+document.querySelectorAll && document.addEventListener('click', e => {
+  if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});
+
+// =====================================================
+// TOAST
+// =====================================================
+function showToast(msg, type = 'default') {
+  const toast = document.getElementById('toast');
+  const icons = { success: 'circle-check', error: 'circle-xmark', default: 'circle-info' };
+  toast.innerHTML = `<i class="fa-solid fa-${icons[type] || icons.default}"></i> <span>${msg}</span>`;
+  toast.className = 'toast show ' + type;
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => { toast.className = 'toast'; }, 3600);
+}
+</script>
+
+</body>
+</html>
+

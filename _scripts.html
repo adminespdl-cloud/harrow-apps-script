@@ -1,0 +1,858 @@
+<script>
+// =====================================================
+// STATE VARIABLES
+// =====================================================
+let currentUser = null;
+let allData = [];
+let dataLoaded = false;
+let editingUserId = null;
+const photoFiles = [];
+let kolaseBase64 = '';
+
+// =====================================================
+// INITIALIZATION
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Load saved credentials if 'Remember Me' was used
+  const savedCreds = localStorage.getItem('harrow_saved_creds');
+  if (savedCreds) {
+    try {
+      const c = JSON.parse(savedCreds);
+      document.getElementById('loginUsername').value = c.u || '';
+      document.getElementById('loginPassword').value = c.p || '';
+      document.getElementById('loginRemember').checked = true;
+    } catch(e) {}
+  }
+
+  const stored = sessionStorage.getItem('harrow_user');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      startApp();
+    } catch(e) {
+      showLoginPage();
+    }
+  } else {
+    showLoginPage();
+  }
+
+  setupPhotoUpload();
+
+  document.getElementById('loginPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+  document.getElementById('loginUsername').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+  });
+
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  updatePreview();
+});
+
+// =====================================================
+// AUTH: LOGIN / LOGOUT
+// =====================================================
+function showLoginPage() {
+  document.getElementById('app-login').style.display = 'flex';
+  document.getElementById('app-main').style.display = 'none';
+  if (typeof resetLoginBtn === 'function') resetLoginBtn();
+}
+
+function togglePw() {
+  const inp = document.getElementById('loginPassword');
+  const ico = document.getElementById('togglePwIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.className = 'fa-solid fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    ico.className = 'fa-solid fa-eye';
+  }
+}
+
+function forgotPassword(e) {
+  e.preventDefault();
+  showLoginErr('Hubungi Administrator untuk mereset password.');
+}
+
+function login() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const btn      = document.getElementById('loginBtn');
+  const spinner  = document.getElementById('loginSpinner');
+  const btnIcon  = document.getElementById('loginBtnIcon');
+  const errBox   = document.getElementById('loginError');
+
+  if (!username || !password) {
+    showLoginErr('Username dan password wajib diisi.');
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnIcon.style.display = 'none';
+  document.getElementById('loginBtnText').textContent = 'Memverifikasi...';
+  errBox.classList.remove('show');
+
+  google.script.run
+    .withSuccessHandler(function(user) {
+      if (user) {
+        currentUser = user;
+        sessionStorage.setItem('harrow_user', JSON.stringify(user));
+        if (document.getElementById('loginRemember').checked) {
+          localStorage.setItem('harrow_saved_creds', JSON.stringify({u: username, p: password}));
+        } else {
+          localStorage.removeItem('harrow_saved_creds');
+        }
+        startApp();
+      } else {
+        showLoginErr('Username atau password salah. Coba lagi.');
+        resetLoginBtn();
+      }
+    })
+    .withFailureHandler(function(err) {
+      showLoginErr('Terjadi kesalahan: ' + (err.message || err));
+      resetLoginBtn();
+    })
+    .authenticateUser(username, password);
+}
+
+function showLoginErr(msg) {
+  document.getElementById('loginErrorMsg').textContent = msg;
+  document.getElementById('loginError').classList.add('show');
+}
+
+function resetLoginBtn() {
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false;
+  document.getElementById('loginSpinner').style.display = 'none';
+  document.getElementById('loginBtnIcon').style.display = 'inline';
+  document.getElementById('loginBtnText').textContent = 'Masuk';
+}
+
+function logout() {
+  openModal('logout-modal');
+}
+
+function doLogout() {
+  closeModal('logout-modal');
+  sessionStorage.removeItem('harrow_user');
+  currentUser = null;
+  allData = [];
+  dataLoaded = false;
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  showLoginPage();
+}
+
+// =====================================================
+// START APP
+// =====================================================
+function startApp() {
+  document.getElementById('app-login').style.display = 'none';
+  document.getElementById('app-main').style.display = 'flex';
+
+  const initials = getInitials(currentUser.nama);
+
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent   = currentUser.nama;
+  document.getElementById('sidebarRole').textContent   = currentUser.role;
+  document.getElementById('sidebarRole').className     = 'role-badge ' + currentUser.role;
+
+  document.getElementById('topbarAvatar').textContent  = initials;
+  document.getElementById('topbarName').textContent    = currentUser.nama;
+
+  document.getElementById('dashboardGreeting').textContent =
+    'Selamat datang, ' + currentUser.nama + '! Berikut ringkasan aktivitas sistem.';
+
+  applyRBAC();
+  showPage('dashboard');
+  loadAllData();
+
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  updatePreview();
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+// =====================================================
+// RBAC
+// =====================================================
+function applyRBAC() {
+  const role = currentUser ? currentUser.role : '';
+  document.querySelectorAll('[data-role="Admin"]').forEach(el => {
+    el.style.display = (role === 'Admin') ? '' : 'none';
+  });
+  document.querySelectorAll('[data-role="Admin,Staff"]').forEach(el => {
+    el.style.display = (role === 'Admin' || role === 'Staff') ? '' : 'none';
+  });
+}
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function showPage(page) {
+  document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
+  const target = document.getElementById('page-' + page);
+  if (target) target.style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const activeNav = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (activeNav) activeNav.classList.add('active');
+
+  const titles = {
+    'dashboard'  : 'Dashboard',
+    'laporan'    : 'Form Laporan',
+    'riwayat'    : 'Riwayat Pekerjaan',
+    'peta-pohon' : 'Rekap Peta Pohon',
+    'user-mgmt'  : 'Manajemen User'
+  };
+  document.getElementById('topbarTitle').textContent = titles[page] || 'HARROW';
+
+  closeSidebar();
+
+  if (page === 'dashboard'   && dataLoaded) renderDashboard();
+  if (page === 'riwayat'     && dataLoaded) { populateRiwayatFilters(); renderRiwayat(); }
+  if (page === 'peta-pohon'  && dataLoaded) initPetaPohon();
+  if (page === 'user-mgmt')                 loadUsers();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// =====================================================
+// DATA LOADING
+// =====================================================
+function loadAllData() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      allData = data || [];
+      dataLoaded = true;
+      renderDashboard();
+      populatePenyulangOptions();
+      populateRiwayatFilters();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal memuat data: ' + (err.message || err), 'error');
+    })
+    .getRiwayatData();
+}
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+function renderDashboard() {
+  if (!dataLoaded) return;
+
+  let totalLaporan = allData.length;
+  let totalWO = new Set(allData.map(d => d.noWo).filter(w => w && w !== '-')).size;
+  let totalPohon = 0, totalVolume = 0, totalFoto = 0;
+
+  allData.forEach(item => {
+    totalVolume += parseFloat(item.volume) || 0;
+    if (item.fotoUrl) totalFoto++;
+    const lines = ((item.ruasFull || '') + '\n' + (item.ruasSegmen || '')).toUpperCase().split('\n');
+    lines.forEach(line => {
+      if (line.includes('PANGKAS') || line.includes('TEBANG')) totalPohon++;
+    });
+  });
+
+  document.getElementById('kpi-laporan').textContent = totalLaporan;
+  document.getElementById('kpi-wo').textContent      = totalWO;
+  document.getElementById('kpi-pohon').textContent   = totalPohon;
+  document.getElementById('kpi-volume').textContent  = totalVolume.toFixed(2);
+  document.getElementById('kpi-foto').textContent    = totalFoto;
+
+  renderRecentTable(allData.slice(0, 5));
+}
+
+function renderRecentTable(data) {
+  const tbody = document.getElementById('recent-tbody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada data laporan.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((item, i) => `
+    <tr>
+      <td style="text-align:center;">${item.noUrut || i + 1}</td>
+      <td>${item.tanggal || '-'}</td>
+      <td><span class="badge badge-blue">${item.penyulang || '-'}</span></td>
+      <td>${item.namaPetugas || '-'}</td>
+      <td><span class="badge badge-green">${parseFloat(item.volume || 0).toFixed(2)} KM</span></td>
+    </tr>
+  `).join('');
+}
+
+// =====================================================
+// FORM LAPORAN
+// =====================================================
+function updatePreview() {
+  document.getElementById('prev-tgl').textContent      = document.getElementById('tanggal').value || '-';
+  document.getElementById('prev-petugas').textContent  = document.getElementById('namaPetugas').value || '-';
+  document.getElementById('prev-penyulang').textContent= document.getElementById('penyulang').value || '-';
+  document.getElementById('prev-wo').textContent       = document.getElementById('noWo').value || '-';
+  const vol = document.getElementById('volume').value || '0';
+  document.getElementById('prev-vol').textContent = parseFloat(vol).toFixed(2) + ' Kms';
+}
+
+function toUpperField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const pos = el.selectionStart;
+  el.value = el.value.toUpperCase();
+  try { el.setSelectionRange(pos, pos); } catch(e) {}
+}
+
+function onRuasInput() {
+  toUpperField('ruasSegmen');
+  const text  = document.getElementById('ruasSegmen').value;
+  const lines = text.split('\n');
+  let count   = 0;
+  lines.forEach(line => {
+    const up = line.toUpperCase();
+    if (up.includes('TEBANG') || up.includes('PANGKAS')) count++;
+  });
+  const km = parseFloat(((count * 50) / 100).toFixed(2));
+  document.getElementById('volume').value = km > 0 ? km : 0;
+  document.getElementById('volVal').textContent = km > 0 ? km : '0';
+  updatePreview();
+}
+
+function setupPhotoUpload() {
+  const dropArea  = document.getElementById('dropArea');
+  const fileInput = document.getElementById('fotoDok');
+  if (!dropArea || !fileInput) return;
+
+  ['dragenter','dragover','dragleave','drop'].forEach(ev =>
+    dropArea.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
+  );
+  ['dragenter','dragover'].forEach(ev =>
+    dropArea.addEventListener(ev, () => dropArea.classList.add('dragover'))
+  );
+  ['dragleave','drop'].forEach(ev =>
+    dropArea.addEventListener(ev, () => dropArea.classList.remove('dragover'))
+  );
+  dropArea.addEventListener('drop', e => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    addPhotos(files);
+  });
+  dropArea.addEventListener('click', e => {
+    if (e.target !== fileInput) fileInput.click();
+  });
+  fileInput.addEventListener('change', () => {
+    addPhotos(Array.from(fileInput.files));
+    fileInput.value = '';
+  });
+}
+
+function addPhotos(files) {
+  files.forEach(f => { if (photoFiles.length < 9) photoFiles.push(f); });
+  renderThumbnails();
+  if (photoFiles.length > 0) generateKolase();
+}
+
+function removePhoto(index) {
+  photoFiles.splice(index, 1);
+  renderThumbnails();
+  if (photoFiles.length > 0) generateKolase();
+  else kolaseBase64 = '';
+}
+
+function renderThumbnails() {
+  const container = document.getElementById('photoThumbs');
+  const lbl       = document.getElementById('dropCountLabel');
+  if (photoFiles.length === 0) {
+    container.innerHTML = '';
+    lbl.textContent = 'Belum ada foto dipilih';
+    return;
+  }
+  lbl.textContent = photoFiles.length + ' foto dipilih';
+  container.innerHTML = photoFiles.map((f, i) => `
+    <div class="photo-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="foto ${i+1}">
+      <button class="rm-thumb" onclick="removePhoto(${i})"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  `).join('');
+}
+
+async function generateKolase() {
+  if (photoFiles.length === 0) { kolaseBase64 = ''; return; }
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+  const n      = Math.min(photoFiles.length, 9);
+  const cols   = Math.min(n, 3);
+  const rows   = Math.ceil(n / cols);
+  const cW = 400, cH = 300;
+  canvas.width  = cols * cW;
+  canvas.height = rows * cH;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < n; i++) {
+    const img = await loadImgFile(photoFiles[i]);
+    ctx.drawImage(img, (i % cols) * cW, Math.floor(i / cols) * cH, cW, cH);
+  }
+  kolaseBase64 = canvas.toDataURL('image/jpeg', 0.8);
+}
+
+function loadImgFile(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => { const img = new Image(); img.onload = () => resolve(img); img.src = e.target.result; };
+    reader.readAsDataURL(file);
+  });
+}
+
+function submitLaporan() {
+  const tanggal    = document.getElementById('tanggal').value;
+  const namaPetugas= document.getElementById('namaPetugas').value.trim();
+  const penyulang  = document.getElementById('penyulang').value.trim();
+  const noWo       = document.getElementById('noWo').value.trim();
+  const koordinat  = document.getElementById('koordinat').value.trim();
+  const ruasSegmen = document.getElementById('ruasSegmen').value.trim();
+  const volume     = parseFloat(document.getElementById('volume').value) || 0;
+
+  if (!tanggal || !namaPetugas || !penyulang || !ruasSegmen) {
+    showToast('Tanggal, Petugas, Penyulang & Ruas wajib diisi!', 'error');
+    return;
+  }
+
+  const ruasFilter = ruasSegmen.split('\n').filter(line => {
+    const up = line.toUpperCase();
+    return up.includes('TEBANG') || up.includes('PANGKAS');
+  }).join('\n');
+
+  const btn     = document.getElementById('btnSubmit');
+  const spinner = document.getElementById('btnSpinner');
+  const btnIcon = document.getElementById('btnIcon');
+  const btnText = document.getElementById('btnText');
+  btn.disabled         = true;
+  spinner.style.display= 'block';
+  btnIcon.style.display= 'none';
+  btnText.textContent  = 'Mengirim...';
+
+  const payload = { tanggal, namaPetugas, penyulang, noWo, koordinat, ruasSegmen: ruasFilter, volume, ruasFull: ruasSegmen, fotoKolase: kolaseBase64 };
+
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('Laporan berhasil dikirim!', 'success');
+      resetForm();
+      resetSubmitBtn();
+      dataLoaded = false;
+      loadAllData();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      resetSubmitBtn();
+    })
+    .processForm(payload);
+}
+
+function resetSubmitBtn() {
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = false;
+  document.getElementById('btnSpinner').style.display = 'none';
+  document.getElementById('btnIcon').style.display    = 'inline';
+  document.getElementById('btnText').textContent      = 'Kirim Laporan';
+}
+
+function resetForm() {
+  ['namaPetugas','penyulang','noWo','koordinat','ruasSegmen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('volume').value  = '0';
+  document.getElementById('volVal').textContent = '0';
+  document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+  photoFiles.length = 0;
+  kolaseBase64 = '';
+  renderThumbnails();
+  updatePreview();
+}
+
+// =====================================================
+// RIWAYAT
+// =====================================================
+function populateRiwayatFilters() {
+  const bulanSet = new Set(), tahunSet = new Set(), penySet = new Set();
+  allData.forEach(item => {
+    if (item.tanggal) {
+      const p = item.tanggal.split('-');
+      if (p.length >= 2) { tahunSet.add(p[0]); bulanSet.add(p[1]); }
+    }
+    if (item.penyulang && item.penyulang !== '-') penySet.add(item.penyulang);
+  });
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+  const selB = document.getElementById('riwayat-bulan');
+  selB.innerHTML = '<option value="">Semua Bulan</option>' +
+    [...bulanSet].sort().map(m => `<option value="${m}">${months[parseInt(m)-1] || m}</option>`).join('');
+
+  const selT = document.getElementById('riwayat-tahun');
+  selT.innerHTML = '<option value="">Semua Tahun</option>' +
+    [...tahunSet].sort((a,b) => b-a).map(t => `<option value="${t}">${t}</option>`).join('');
+
+  const selP = document.getElementById('riwayat-penyulang');
+  selP.innerHTML = '<option value="">Semua Penyulang</option>' +
+    [...penySet].sort().map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function renderRiwayat() { applyRiwayatFilter(); }
+
+function applyRiwayatFilter() {
+  const bulan    = document.getElementById('riwayat-bulan').value;
+  const tahun    = document.getElementById('riwayat-tahun').value;
+  const penyulang= document.getElementById('riwayat-penyulang').value;
+  const search   = (document.getElementById('riwayat-search').value || '').toLowerCase();
+
+  const filtered = allData.filter(item => {
+    if (tahun && item.tanggal && !item.tanggal.startsWith(tahun)) return false;
+    if (bulan && item.tanggal && item.tanggal.split('-')[1] !== bulan) return false;
+    if (penyulang && item.penyulang !== penyulang) return false;
+    if (search && !JSON.stringify(item).toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderRiwayatCards(filtered);
+}
+
+function renderRiwayatCards(data) {
+  const container = document.getElementById('riwayat-container');
+  if (!data || data.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Tidak ada data yang cocok dengan filter.</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map((item, idx) => {
+    const lines   = (item.ruasFull || '').split('\n');
+    const ruasHtml= lines.map(line => {
+      const up = line.toUpperCase();
+      return (up.includes('TEBANG') || up.includes('PANGKAS'))
+        ? `<span class="line-pangkas">${line}</span>\n`
+        : line + '\n';
+    }).join('');
+    const fotoHtml= item.fotoUrl
+      ? `<div class="riwayat-foto">
+           <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">FOTO DOKUMENTASI</div>
+           <img src="${item.fotoUrl}" alt="Foto Dokumentasi" loading="lazy">
+         </div>` : '';
+    return `
+      <div class="riwayat-card" id="rcard-${idx}">
+        <div class="riwayat-summary" onclick="toggleRiwayat(${idx})">
+          <div class="riwayat-ico"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="riwayat-info">
+            <div class="riwayat-title">${item.penyulang || '-'} &mdash; ${item.noWo || '-'}</div>
+            <div class="riwayat-meta">${item.tanggal || '-'} &bull; ${item.namaPetugas || '-'}</div>
+          </div>
+          <span class="riwayat-vol">${parseFloat(item.volume || 0).toFixed(2)} KM</span>
+          <div class="riwayat-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="riwayat-detail">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="di-lbl">No. WO</div><div class="di-val">${item.noWo || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Koordinat</div><div class="di-val">${item.koordinat || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Petugas</div><div class="di-val">${item.namaPetugas || '-'}</div></div>
+            <div class="detail-item"><div class="di-lbl">Volume</div><div class="di-val">${parseFloat(item.volume||0).toFixed(2)} KM</div></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">DETAIL RUAS</div>
+            <div class="ruas-box">${ruasHtml}</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="copyRuas(${idx}, event)">
+            <i class="fa-solid fa-copy"></i> Salin Laporan
+          </button>
+          ${fotoHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleRiwayat(idx) {
+  document.getElementById('rcard-' + idx).classList.toggle('expanded');
+}
+
+function copyRuas(idx, ev) {
+  if (ev) ev.stopPropagation();
+  const item = allData[idx] || {};
+  const text = `LAPORAN HARROW\nTanggal: ${item.tanggal}\nPetugas: ${item.namaPetugas}\nPenyulang: ${item.penyulang}\nNo. WO: ${item.noWo}\nVolume: ${item.volume} KM\n\nDETAIL RUAS:\n${item.ruasFull}`;
+  navigator.clipboard.writeText(text).then(() => showToast('Berhasil disalin!', 'success')).catch(() => showToast('Gagal menyalin teks', 'error'));
+}
+
+// =====================================================
+// PETA POHON
+// =====================================================
+function populatePenyulangOptions() {
+  const penySet = new Set(allData.map(d => d.penyulang).filter(p => p && p !== '-'));
+  const sel = document.getElementById('petaPenyulang');
+  if (sel) {
+    sel.innerHTML = '<option value="">-- Pilih Penyulang --</option>' +
+      [...penySet].sort().map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+}
+
+function initPetaPohon() { populatePenyulangOptions(); }
+
+function renderPetaPohon() {
+  const vPenyulang = document.getElementById('petaPenyulang').value;
+  const tBody      = document.getElementById('petaPohonTableBody');
+  const printBtn   = document.getElementById('btnPrint');
+
+  if (!vPenyulang) {
+    tBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Pilih penyulang terlebih dahulu.</td></tr>';
+    printBtn.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('printPenyulangName').textContent = 'Penyulang: ' + vPenyulang;
+
+  const filtered = allData.filter(item => item.penyulang && item.penyulang.toUpperCase() === vPenyulang.toUpperCase());
+  filtered.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+  if (filtered.length === 0) {
+    tBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data untuk penyulang ini.</td></tr>';
+    printBtn.style.display = 'none';
+    return;
+  }
+
+  let rowsHtml = '';
+  let noUrut   = 1;
+
+  filtered.forEach(item => {
+    const textToDisplay = (item.ruasFull ? item.ruasFull : item.ruasSegmen) || '';
+    if (!textToDisplay) return;
+
+    const lines = textToDisplay.split('\n');
+    let isFirst = true;
+
+    lines.forEach(line => {
+      const regexSplit = new RegExp('-(?=[ \t]*' + vPenyulang + ')', 'gi');
+      const chunks     = line.split(regexSplit);
+      let inSection    = false;
+
+      chunks.forEach(chunk => {
+        let cleaned = chunk.trim().replace(/^[-* \t]+/, '').replace(/[-* \t]+$/, '').trim();
+        if (!cleaned) return;
+
+        const upperCleaned = cleaned.toUpperCase();
+        const peny         = vPenyulang.toUpperCase();
+
+        if (upperCleaned.startsWith('SECTION') || upperCleaned.startsWith('SEGMEN')) {
+          inSection = true; return;
+        }
+
+        let noTiang    = '-';
+        let keterangan = cleaned;
+
+        if (upperCleaned.startsWith(peny)) {
+          const parts = cleaned.split(/[ \t]+/);
+          if (parts[0].toUpperCase() === peny && parts.length > 1) {
+            noTiang    = parts[0] + ' ' + parts[1];
+            keterangan = parts.slice(2).join(' ').trim();
+          } else {
+            noTiang    = parts[0];
+            keterangan = parts.slice(1).join(' ').trim();
+          }
+        }
+
+        if (keterangan !== '-') {
+          keterangan = keterangan.replace(/[ \t]*-[ \t]*$/, '').trim();
+          if (!keterangan) keterangan = '-';
+        }
+
+        if (inSection) {
+          if (keterangan === '-') return;
+          else inSection = false;
+        }
+
+        const isPohon  = keterangan.toUpperCase().includes('PANGKAS') || keterangan.toUpperCase().includes('TEBANG');
+        const ketHtml  = isPohon ? `<span style="color:#16a34a;">${keterangan}</span>` : keterangan;
+        const svgT     = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:3px;vertical-align:text-bottom;"><line x1="12" y1="3" x2="12" y2="22"/><line x1="5" y1="8" x2="19" y2="8"/><line x1="5" y1="4" x2="5" y2="8"/><line x1="19" y1="4" x2="19" y2="8"/></svg>`;
+        const gambar   = isPohon
+          ? `<span style="color:#16a34a;font-weight:600;"><i class="fa-solid fa-tree"></i> Pohon</span>`
+          : `<span style="color:#64748b;">${svgT} Tiang</span>`;
+
+        const cellTgl  = isFirst ? (item.tanggal   || '-') : '';
+        const cellTkor = isFirst ? (item.koordinat || '-') : '';
+
+        rowsHtml += `
+          <tr>
+            <td style="text-align:center;">${noUrut++}</td>
+            <td style="white-space:nowrap;">${cellTgl}</td>
+            <td style="white-space:nowrap;">${cellTkor}</td>
+            <td style="white-space:nowrap;color:#111;">${noTiang}</td>
+            <td style="white-space:nowrap;">${ketHtml}</td>
+            <td style="text-align:center;font-size:0.78rem;">${gambar}</td>
+          </tr>`;
+        isFirst = false;
+      });
+    });
+  });
+
+  tBody.innerHTML = rowsHtml || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada data tiang yang dapat ditampilkan.</td></tr>';
+  printBtn.style.display = 'flex';
+}
+
+// =====================================================
+// USER MANAGEMENT
+// =====================================================
+function loadUsers() {
+  const tbody = document.getElementById('users-table-body');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat...</td></tr>';
+
+  google.script.run
+    .withSuccessHandler(renderUsersTable)
+    .withFailureHandler(err => {
+      showToast('Gagal memuat user: ' + (err.message || err), 'error');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--danger);">Gagal memuat data</td></tr>';
+    })
+    .getUsers();
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-table-body');
+  if (!users || users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text-muted);">Belum ada user terdaftar.</td></tr>';
+    return;
+  }
+  const roleColor = { Admin: 'badge-red', Staff: 'badge-green', Petugas: 'badge-yellow' };
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${u.nama || '-'}</strong></td>
+      <td><code style="font-size:0.8rem;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${u.username || '-'}</code></td>
+      <td><span class="badge ${roleColor[u.role] || 'badge-gray'}">${u.role || '-'}</span></td>
+      <td><span class="badge ${u.status === 'AKTIF' ? 'badge-green' : 'badge-gray'}">${u.status || '-'}</span></td>
+      <td>${u.dibuat || '-'}</td>
+      <td>
+        <div class="tbl-actions">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openEditUser('${u.id}')" title="Edit">
+            <i class="fa-solid fa-pen-to-square" style="color:var(--primary);"></i>
+          </button>
+          <button class="btn btn-outline btn-sm btn-icon" onclick="confirmDeleteUser('${u.id}','${u.nama}')" title="Hapus">
+            <i class="fa-solid fa-trash" style="color:var(--danger);"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddUser() {
+  editingUserId = null;
+  document.getElementById('user-modal-title').textContent = 'Tambah User Baru';
+  ['userNama','userUsername','userPassword'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('userRole').value   = 'Petugas';
+  document.getElementById('userStatus').value = 'AKTIF';
+  openModal('user-modal');
+}
+
+function openEditUser(id) {
+  google.script.run
+    .withSuccessHandler(function(users) {
+      const user = (users || []).find(u => u.id === id);
+      if (!user) { showToast('User tidak ditemukan', 'error'); return; }
+      editingUserId = id;
+      document.getElementById('user-modal-title').textContent = 'Edit User';
+      document.getElementById('userNama').value     = user.nama;
+      document.getElementById('userUsername').value = user.username;
+      document.getElementById('userPassword').value = user.password;
+      document.getElementById('userRole').value     = user.role;
+      document.getElementById('userStatus').value   = user.status;
+      openModal('user-modal');
+    })
+    .withFailureHandler(err => showToast('Error: ' + (err.message || err), 'error'))
+    .getUsers();
+}
+
+function saveUserForm() {
+  const nama     = document.getElementById('userNama').value.trim();
+  const username = document.getElementById('userUsername').value.trim();
+  const password = document.getElementById('userPassword').value.trim();
+  const role     = document.getElementById('userRole').value;
+  const status   = document.getElementById('userStatus').value;
+
+  if (!nama || !username || !password) {
+    showToast('Nama, Username, dan Password wajib diisi!', 'error'); return;
+  }
+
+  const payload = { nama, username, password, role, status };
+  if (editingUserId) payload.id = editingUserId;
+
+  const btn = document.getElementById('save-user-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('User berhasil disimpan!', 'success');
+      closeModal('user-modal');
+      loadUsers();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    })
+    .saveUser(payload);
+}
+
+let userToDelete = null;
+
+function confirmDeleteUser(id, nama) {
+  userToDelete = id;
+  document.getElementById('delete-user-msg').textContent = `Hapus user "${nama}"? Tindakan ini tidak dapat dibatalkan.`;
+  openModal('delete-user-modal');
+}
+
+function doDeleteUser() {
+  if (!userToDelete) return;
+  closeModal('delete-user-modal');
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('User berhasil dihapus!', 'success');
+      loadUsers();
+      userToDelete = null;
+    })
+    .withFailureHandler(err => {
+      showToast('Gagal: ' + (err.message || err), 'error');
+      userToDelete = null;
+    })
+    .deleteUser(userToDelete);
+}
+
+// =====================================================
+// MODAL HELPERS
+// =====================================================
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Close modal on overlay click
+document.querySelectorAll && document.addEventListener('click', e => {
+  if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});
+
+// =====================================================
+// TOAST
+// =====================================================
+function showToast(msg, type = 'default') {
+  const toast = document.getElementById('toast');
+  const icons = { success: 'circle-check', error: 'circle-xmark', default: 'circle-info' };
+  toast.innerHTML = `<i class="fa-solid fa-${icons[type] || icons.default}"></i> <span>${msg}</span>`;
+  toast.className = 'toast show ' + type;
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => { toast.className = 'toast'; }, 3600);
+}
+</script>

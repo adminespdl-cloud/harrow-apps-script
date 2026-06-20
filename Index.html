@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HARROW - Realisasi ROW</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <?!= include('_styles'); ?>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN PAGE
+============================================================ -->
+<div id="app-login">
+  <div class="login-bg-circles">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <!-- Combined Tree + TM Tower SVG Logo -->
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Tree -->
+          <polygon points="24,58 38,30 12,30" fill="#16a34a" opacity="0.9"/>
+          <polygon points="24,48 36,22 12,22" fill="#22c55e"/>
+          <rect x="21" y="58" width="6" height="10" rx="2" fill="#15803d"/>
+          <!-- TM Tiang -->
+          <rect x="50" y="20" width="4" height="42" rx="1.5" fill="#1a78c2"/>
+          <rect x="40" y="28" width="24" height="4" rx="2" fill="#0f5a9e"/>
+          <rect x="38" y="22" width="4" height="10" rx="1.5" fill="#1a78c2"/>
+          <rect x="62" y="22" width="4" height="10" rx="1.5" fill="#1a78c2"/>
+          <!-- Isolators -->
+          <circle cx="40" cy="22" r="2.5" fill="#64748b"/>
+          <circle cx="64" cy="22" r="2.5" fill="#64748b"/>
+          <circle cx="52" cy="20" r="2.5" fill="#64748b"/>
+        </svg>
+      </div>
+      <h1>HARROW</h1>
+      <p>Realisasi ROW &mdash; Sistem Pelaporan Lapangan</p>
+    </div>
+    <div class="login-divider"></div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginUsername">Username</label>
+      <div class="login-input-wrap">
+        <i class="fa-solid fa-user prefix"></i>
+        <input type="text" id="loginUsername" placeholder="Masukkan username">
+      </div>
+    </div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginPassword">Password</label>
+      <div class="login-input-wrap">
+        <i class="fa-solid fa-lock prefix"></i>
+        <input type="password" id="loginPassword" placeholder="Masukkan password">
+        <button class="toggle-pw" type="button" onclick="togglePw()" id="togglePwBtn">
+          <i class="fa-solid fa-eye" id="togglePwIcon"></i>
+        </button>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; font-size: 0.85rem;">
+      <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted); font-weight: 500;">
+        <input type="checkbox" id="loginRemember" style="accent-color: var(--primary); width: 14px; height: 14px;"> Ingat Saya
+      </label>
+      <a href="#" onclick="forgotPassword(event)" style="color: var(--primary); text-decoration: none; font-weight: 600;">Lupa Password?</a>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="login()">
+      <div class="spinner-sm" id="loginSpinner"></div>
+      <i class="fa-solid fa-right-to-bracket" id="loginBtnIcon"></i>
+      <span id="loginBtnText">Masuk</span>
+    </button>
+    <div class="login-error" id="loginError">
+      <i class="fa-solid fa-circle-xmark"></i>
+      <span id="loginErrorMsg">Username atau password salah.</span>
+    </div>
+    <div class="login-version">HARROW v2.0</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP LAYOUT
+============================================================ -->
+<div id="app-main" style="display: none;">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-icon-wrap">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+            <polygon points="10,28 18,10 6,10" fill="#22c55e" opacity="0.9"/>
+            <rect x="15" y="8" width="3" height="20" rx="1" fill="#93c5fd"/>
+            <rect x="10" y="13" width="13" height="2.5" rx="1" fill="#fff"/>
+            <rect x="9" y="9" width="2.5" height="6" rx="1" fill="#93c5fd"/>
+            <rect x="21" y="9" width="2.5" height="6" rx="1" fill="#93c5fd"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>HARROW</h2>
+          <p>Realisasi ROW System</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-user-box">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">-</div>
+        <span class="role-badge" id="sidebarRole">-</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i> Dashboard
+      </button>
+      <button class="nav-item" data-page="laporan" onclick="showPage('laporan')">
+        <i class="fa-solid fa-file-circle-plus"></i> Form Laporan
+      </button>
+      <button class="nav-item" data-page="riwayat" data-role="Admin,Staff" onclick="showPage('riwayat')">
+        <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pekerjaan
+      </button>
+      <button class="nav-item" data-page="peta-pohon" data-role="Admin,Staff" onclick="showPage('peta-pohon')">
+        <i class="fa-solid fa-map-location-dot"></i> Rekap Peta Pohon
+      </button>
+      <div class="nav-section-label" data-role="Admin">Administrasi</div>
+      <button class="nav-item" data-page="user-mgmt" data-role="Admin" onclick="showPage('user-mgmt')">
+        <i class="fa-solid fa-users-gear"></i> Manajemen User
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <button class="topbar-hamburger" id="hamburger" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-user-pill">
+        <div class="topbar-avatar" id="topbarAvatar">?</div>
+        <span class="topbar-name" id="topbarName">-</span>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: DASHBOARD
+    ============================================================ -->
+    <div class="page-content" id="page-dashboard">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard</h2>
+        <p id="dashboardGreeting">Selamat datang!</p>
+      </div>
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-laporan">0</div>
+            <div class="kpi-lbl">Total Laporan</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon teal"><i class="fa-solid fa-file-invoice"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-wo">0</div>
+            <div class="kpi-lbl">Total WO</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="fa-solid fa-tree"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-pohon">0</div>
+            <div class="kpi-lbl">Total Pohon (Baris)</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="fa-solid fa-road"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-volume">0</div>
+            <div class="kpi-lbl">Total Volume (KM)</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i class="fa-solid fa-camera"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-num" id="kpi-foto">0</div>
+            <div class="kpi-lbl">Laporan Foto</div>
+          </div>
+        </div>
+      </div>
+      <!-- RECENT TABLE -->
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-list"></i> 5 Laporan Terakhir</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="tbl-wrap" style="border:none;border-radius:0;">
+            <table class="data-tbl">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Tanggal</th>
+                  <th>Penyulang</th>
+                  <th>Petugas</th>
+                  <th>Volume</th>
+                </tr>
+              </thead>
+              <tbody id="recent-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: FORM LAPORAN
+    ============================================================ -->
+    <div class="page-content" id="page-laporan" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-file-circle-plus"></i> Form Laporan Baru</h2>
+        <p>Isi semua field yang diperlukan, lalu kirim laporan.</p>
+      </div>
+
+      <!-- SECTION: INFORMASI PETUGAS -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-user-tie"></i>
+          <h3>Informasi Petugas</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal Eksekusi <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-calendar-day inp-icon"></i>
+                <input type="date" class="form-control" id="tanggal" oninput="updatePreview()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nama Petugas <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-user inp-icon"></i>
+                <input type="text" class="form-control" id="namaPetugas" placeholder="Contoh: BUDI SANTOSO"
+                  oninput="toUpperField('namaPetugas'); updatePreview()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: LOKASI -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-location-dot"></i>
+          <h3>Lokasi & WO</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Penyulang <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-bolt inp-icon"></i>
+                <input type="text" class="form-control" id="penyulang" placeholder="Contoh: PTB / CKLW"
+                  oninput="toUpperField('penyulang'); updatePreview()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">No. WO</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-file-invoice inp-icon"></i>
+                <input type="text" class="form-control" id="noWo" placeholder="Nomor Work Order"
+                  oninput="toUpperField('noWo'); updatePreview()">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Titik Koordinat (Tikor Awal)</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-map-pin inp-icon"></i>
+              <input type="text" class="form-control" id="koordinat" placeholder="Contoh: -6.1234, 106.5678"
+                oninput="updatePreview()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: DETAIL PEKERJAAN -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-list-check"></i>
+          <h3>Detail Pekerjaan</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label class="form-label">Ruas / Segmen (Tempel Laporan WA) <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-align-left inp-icon top-align"></i>
+              <textarea class="form-control" id="ruasSegmen"
+                placeholder="Tempel laporan dari WhatsApp di sini..."
+                oninput="onRuasInput()"></textarea>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:5px;">
+              <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i>
+              Sistem otomatis menghitung KM dari baris yang mengandung kata TEBANG / PANGKAS.
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Volume (Otomatis Terhitung)</label>
+            <div class="vol-display" id="volDisplay">
+              <span class="vol-lbl"><i class="fa-solid fa-road"></i> Total Volume</span>
+              <div>
+                <span class="vol-val" id="volVal">0</span>
+                <span class="vol-unit"> Kms</span>
+              </div>
+            </div>
+            <input type="hidden" id="volume" value="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: DOKUMENTASI -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-camera"></i>
+          <h3>Dokumentasi Foto</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="photo-drop" id="dropArea">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Tarik &amp; Lepas Foto di Sini</p>
+            <span>Atau klik untuk memilih (maks. 9 foto)</span>
+            <span id="dropCountLabel">Belum ada foto dipilih</span>
+            <input type="file" id="fotoDok" accept="image/*" multiple>
+          </div>
+          <div class="photo-thumbs" id="photoThumbs"></div>
+        </div>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div class="form-section-card">
+        <div class="form-section-head">
+          <i class="fa-solid fa-eye"></i>
+          <h3>Ringkasan Laporan (Preview)</h3>
+        </div>
+        <div class="form-section-body">
+          <div class="preview-panel">
+            <h4><i class="fa-solid fa-eye"></i> Pratinjau Sebelum Kirim</h4>
+            <div class="prev-row"><span class="prev-lbl">Tanggal</span><span class="prev-val" id="prev-tgl">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Petugas</span><span class="prev-val" id="prev-petugas">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Penyulang</span><span class="prev-val" id="prev-penyulang">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">No. WO</span><span class="prev-val" id="prev-wo">-</span></div>
+            <div class="prev-row"><span class="prev-lbl">Volume</span><span class="prev-val" id="prev-vol">0 Kms</span></div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-lg" style="flex:2;min-width:180px;" id="btnSubmit" onclick="submitLaporan()">
+              <div class="spinner-sm" id="btnSpinner"></div>
+              <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
+              <span id="btnText">Kirim Laporan</span>
+            </button>
+            <button class="btn btn-outline" onclick="resetForm()" style="flex:1;">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: RIWAYAT
+    ============================================================ -->
+    <div class="page-content" id="page-riwayat" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pekerjaan</h2>
+        <p>Seluruh laporan yang pernah dikirimkan oleh tim.</p>
+      </div>
+      <div class="filter-row">
+        <select id="riwayat-bulan" onchange="applyRiwayatFilter()"><option value="">Semua Bulan</option></select>
+        <select id="riwayat-tahun" onchange="applyRiwayatFilter()"><option value="">Semua Tahun</option></select>
+        <select id="riwayat-penyulang" onchange="applyRiwayatFilter()"><option value="">Semua Penyulang</option></select>
+        <input type="text" id="riwayat-search" placeholder="&#xf002; Cari..." oninput="applyRiwayatFilter()">
+      </div>
+      <div id="riwayat-container">
+        <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Memuat data...</p></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: PETA POHON
+    ============================================================ -->
+    <div class="page-content" id="page-peta-pohon" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-map-location-dot"></i> Rekap Peta Pohon</h2>
+        <p>Analisis data tiang per penyulang berdasarkan laporan yang masuk.</p>
+      </div>
+      <div class="filter-row">
+        <select id="petaPenyulang" onchange="renderPetaPohon()" style="min-width:200px;">
+          <option value="">-- Pilih Penyulang --</option>
+        </select>
+      </div>
+      <div class="print-header" style="display:none;">
+        <h2>REKAP PETA POHON (HARROW)</h2>
+        <h3>Penyulang: -</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="styled-table">
+          <thead>
+            <tr class="print-header-row" style="display:none;">
+              <th colspan="6" style="background-color:#fff !important; color:#000 !important; text-align:center; padding:15px 0 25px 0; border:none !important;">
+                <h2 style="font-size:16pt; font-weight:bold; margin:0 0 6px 0; letter-spacing:1px; color:#000;">REKAP PETA POHON (HARROW)</h2>
+                <h3 id="printPenyulangName" style="font-size:12pt; font-weight:normal; margin:0; color:#333;">Penyulang: -</h3>
+              </th>
+            </tr>
+            <tr>
+              <th style="width:5%">No.</th>
+              <th style="width:11%">Tanggal</th>
+              <th style="width:12%">Tikor Awal</th>
+              <th style="width:18%">No. Tiang</th>
+              <th style="width:44%">Keterangan</th>
+              <th style="width:10%">Ket. Gambar</th>
+            </tr>
+          </thead>
+          <tbody id="petaPohonTableBody">
+            <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Pilih penyulang terlebih dahulu.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn-print-action" id="btnPrint" style="display:none;" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+      </button>
+    </div>
+
+    <!-- ============================================================
+         PAGE: USER MANAGEMENT (Admin only)
+    ============================================================ -->
+    <div class="page-content" id="page-user-mgmt" style="display: none;">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-users-gear"></i> Manajemen User</h2>
+        <p>Kelola akun pengguna, role, dan hak akses sistem.</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-list-ul"></i> Daftar Pengguna</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddUser()">
+            <i class="fa-solid fa-plus"></i> Tambah User
+          </button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="tbl-wrap" style="border:none;border-radius:0;">
+            <table class="data-tbl">
+              <thead>
+                <tr>
+                  <th>Nama Lengkap</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Dibuat</th>
+                  <th style="width:100px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main><!-- end .main-content -->
+</div><!-- end #app-main -->
+
+<!-- ============================================================
+     MODAL: USER FORM
+============================================================ -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-user-gear"></i> <span id="user-modal-title">Tambah User Baru</span></h3>
+      <button class="modal-close" onclick="closeModal('user-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-id-card inp-icon"></i>
+          <input type="text" class="form-control" id="userNama" placeholder="Nama lengkap petugas">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-at inp-icon"></i>
+            <input type="text" class="form-control" id="userUsername" placeholder="username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-key inp-icon"></i>
+            <input type="text" class="form-control" id="userPassword" placeholder="password">
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-control no-icon" id="userRole">
+            <option value="Petugas">Petugas</option>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control no-icon" id="userStatus">
+            <option value="AKTIF">Aktif</option>
+            <option value="NONAKTIF">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('user-modal')">Batal</button>
+      <button class="btn btn-primary" id="save-user-btn" onclick="saveUserForm()">
+        <i class="fa-solid fa-floppy-disk"></i> Simpan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: LOGOUT CONFIRM
+============================================================ -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-right-from-bracket"></i> Konfirmasi Keluar</h3>
+      <button class="modal-close" onclick="closeModal('logout-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+      <p style="font-size: 1rem; color: var(--text);">Apakah Anda yakin ingin keluar dari aplikasi?</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('logout-modal')">Batal</button>
+      <button class="btn btn-danger" onclick="doLogout()">
+        <i class="fa-solid fa-power-off"></i> Ya, Keluar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: DELETE USER CONFIRM
+============================================================ -->
+<div class="modal-overlay" id="delete-user-modal">
+  <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-triangle-exclamation"></i> Konfirmasi Hapus</h3>
+      <button class="modal-close" onclick="closeModal('delete-user-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+      <p style="font-size: 1rem; color: var(--text);" id="delete-user-msg"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('delete-user-modal')">Batal</button>
+      <button class="btn btn-danger" onclick="doDeleteUser()">
+        <i class="fa-solid fa-trash"></i> Hapus User
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Canvas for photo processing (hidden) -->
+<canvas id="canvas" style="display:none;"></canvas>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast"><i class="fa-solid fa-circle-check"></i> <span></span></div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+
+<?!= include('_scripts'); ?>
+</body>
+</html>
+
